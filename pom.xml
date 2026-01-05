@@ -163,6 +163,20 @@
             <version>${restassured.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- .env file support -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <!-- HTTP Client for making API calls -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
     </dependencies>
 
     <build>
