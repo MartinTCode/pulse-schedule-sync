@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.pulse.frontend.TestDashboardController"
+            prefWidth="1000" prefHeight="700"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <top>
+        <Label text="API Test Dashboard" 
+               style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #333;">
+            <padding>
+                <Insets top="20" left="30" right="30" bottom="10"/>
+            </padding>
+        </Label>
+    </top>
+    
+    <center>
+        <VBox spacing="15" style="-fx-alignment: top-left;">
+            <padding>
+                <Insets left="30" right="30" top="20" bottom="30"/>
+            </padding>
+            
+            <Label text="Backend Status" 
+                   style="-fx-font-size: 18; -fx-text-fill: #555; -fx-font-weight: bold;">
+                <font>
+                    <Font name="System Bold" size="18" />
+                </font>
+            </Label>
+            
+            <Label fx:id="statusLabel" text="REST Backend: Checking..." 
+                   style="-fx-font-size: 14; -fx-text-fill: #ffc107; -fx-font-weight: bold;"/>
+            
+            <Separator style="-fx-padding: 10; -fx-border-color: #ddd;"/>
+            
+            <Label text="Available Test Endpoints" 
+                   style="-fx-font-size: 16; -fx-text-fill: #333; -fx-font-weight: bold;"/>
+            
+            <Label text="Instructions: Copy the URL and paste it into your browser to test each endpoint." 
+                   style="-fx-font-size: 11; -fx-text-fill: #999; -fx-font-style: italic;"/>
+            
+            <!-- Health Endpoint -->
+            <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-padding: 10;">
+                <Label text="1. Health Check Endpoint" 
+                       style="-fx-font-size: 12; -fx-text-fill: #333; -fx-font-weight: bold;"/>
+                <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
+                <TextField fx:id="healthUrlField" 
+                           style="-fx-font-size: 10; -fx-padding: 5; -fx-border-color: #ccc;"/>
+                <Label text="Expected Response: {status: ok}" 
+                       style="-fx-font-size: 10; -fx-text-fill: #999;"/>
+            </VBox>
+            
+            <!-- Canvas API Test Endpoint -->
+            <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-padding: 10;">
+                <Label text="2. Canvas API Test Endpoint" 
+                       style="-fx-font-size: 12; -fx-text-fill: #333; -fx-font-weight: bold;"/>
+                <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
+                <TextField fx:id="canvasTestUrlField" 
+                           style="-fx-font-size: 10; -fx-padding: 5; -fx-border-color: #ccc;"/>
+                <Label text="Expected: success true, Canvas connection successful..." 
+                       style="-fx-font-size: 10; -fx-text-fill: #999;"/>
+                <Label fx:id="canvasTestStatusLabel" text="Status: Not tested" 
+                       style="-fx-font-size: 10; -fx-text-fill: #ffc107;"/>
+            </VBox>
+            
+        </VBox>
+    </center>
+    
+</BorderPane>
