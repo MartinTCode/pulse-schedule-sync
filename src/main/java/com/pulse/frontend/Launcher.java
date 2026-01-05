@@ -19,13 +19,18 @@ public class Launcher extends Application {
         // Start embedded REST server
         server = RestServer.startServer();
 
+        // Check if test dashboard should be loaded instead
+        boolean loadTestDashboard = "true".equals(System.getProperty("test-dashboard"));
+        String fxmlResource = loadTestDashboard ? "/fxml/TestDashboard.fxml" : "/fxml/ScheduleOverview.fxml";
+        String windowTitle = loadTestDashboard ? "API Test Dashboard" : "TimeEdit → Canvas Transfer";
+
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/fxml/ScheduleOverview.fxml")
+                getClass().getResource(fxmlResource)
         );
 
         Scene scene = new Scene(loader.load());
 
-        stage.setTitle("TimeEdit → Canvas Transfer");
+        stage.setTitle(windowTitle);
         stage.setScene(scene);
         stage.show();
     }
