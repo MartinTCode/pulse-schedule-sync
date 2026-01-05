@@ -175,6 +175,30 @@ or to just run backend:
 ```bash
 mvn exec:java
 ```
+
+#### 3.1 Running the Test Dashboard (API Testing UI)
+The test dashboard provides a visual interface to test API endpoints and verify Canvas API connectivity.
+
+**Run test dashboard:**
+```bash
+mvn javafx:run -Dtest-dashboard=true
+```
+
+The test dashboard displays:
+- Backend health status (Health Check Endpoint)
+- Canvas API connectivity test results (Canvas API Test Endpoint)
+- Expected response formats for each endpoint
+
+This is useful for:
+- Verifying Canvas credentials are loaded correctly
+- Debugging integration issues
+- Confirming REST server is running
+
+**Normal UI (Schedule Overview):**
+```bash
+mvn javafx:run
+```
+
 ### 4. Test endpoints.
 once the application is running, we can test it using Postman or just the a web browser (URL):
 
