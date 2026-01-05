@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 public class ScheduleOverviewController {
@@ -31,28 +32,30 @@ public class ScheduleOverviewController {
     private void checkServerStatus() {
         new Thread(() -> {
             try {
-                URL url = new URL(SERVER_URL);
+                URL url = new URI(SERVER_URL).toURL();
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setConnectTimeout(2000);
-                conn.setReadTimeout(2000);
-                conn.setRequestMethod("GET");
-                
-                int responseCode = conn.getResponseCode();
-                boolean isOnline = (responseCode >= 200 && responseCode < 300);
-                
-                javafx.application.Platform.runLater(() -> {
-                    if (statusLabel != null) {
-                        if (isOnline) {
-                            statusLabel.setText("REST Backend: Online");
-                            statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #28a745; -fx-font-weight: bold;");
-                        } else {
-                            statusLabel.setText("REST Backend: Offline");
-                            statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                try {
+                    conn.setConnectTimeout(2000);
+                    conn.setReadTimeout(2000);
+                    conn.setRequestMethod("GET");
+                    
+                    int responseCode = conn.getResponseCode();
+                    boolean isOnline = (responseCode >= 200 && responseCode < 300);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (statusLabel != null) {
+                            if (isOnline) {
+                                statusLabel.setText("REST Backend: Online");
+                                statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            } else {
+                                statusLabel.setText("REST Backend: Offline");
+                                statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            }
                         }
-                    }
-                });
-                
-                conn.disconnect();
+                    });
+                } finally {
+                    conn.disconnect();
+                }
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     if (statusLabel != null) {
