@@ -231,6 +231,9 @@
                 <version>${mJavafxP.version}</version>
                 <configuration>
                     <mainClass>com.pulse.frontend.Launcher</mainClass>
+                    <options>
+                        <option>-Dtest-dashboard=${test-dashboard}</option>
+                    </options>
                 </configuration>
                 <executions>
                     <execution>
