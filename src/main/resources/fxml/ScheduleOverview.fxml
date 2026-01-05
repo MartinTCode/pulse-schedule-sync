@@ -1,15 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.text.Font?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pulse.frontend.ScheduleOverviewController">
-    <center>
-        <Label text="Schedule Overview - REST Server Running at http://localhost:8080/health">
-            <BorderPane.margin>
-                <Insets left="20.0" top="20.0"/>
-            </BorderPane.margin>
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.pulse.frontend.ScheduleOverviewController"
+            prefWidth="900" prefHeight="600"
+            style="-fx-background-color: #f5f5f5;">
+    
+    <top>
+        <Label text="TimeEdit → Canvas Transfer" 
+               style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #333;">
+            <padding>
+                <Insets top="20" left="30" right="30" bottom="10"/>
+            </padding>
         </Label>
+    </top>
+    
+    <center>
+        <VBox spacing="20" style="-fx-alignment: top-center;">
+            <padding>
+                <Insets left="30" right="30" top="20" bottom="30"/>
+            </padding>
+            
+            <Label text="Schedule Overview" 
+                   style="-fx-font-size: 18; -fx-text-fill: #555;">
+                <font>
+                    <Font name="System Bold" size="18" />
+                </font>
+            </Label>
+            
+            <Label fx:id="statusLabel" text="REST Backend: Checking..." 
+                   style="-fx-font-size: 14; -fx-text-fill: #ffc107; -fx-font-weight: bold;"/>
+            
+            <Label text="Test REST Backend" 
+                   style="-fx-font-size: 12; -fx-text-fill: #666; -fx-font-weight: bold;"/>
+            
+            <Label text="Copy the URL below and paste it into your browser to test the REST backend." 
+                   style="-fx-font-size: 11; -fx-text-fill: #999; -fx-font-style: italic;"/>
+            
+            <Label text="Expected: JSON response {'status': 'ok'}" 
+                   style="-fx-font-size: 10; -fx-text-fill: #aaa;"/>
+            
+            <TextField fx:id="serverUrlField" 
+                       style="-fx-font-size: 12; -fx-padding: 8; -fx-border-color: #ccc;"/>
+        </VBox>
     </center>
+    
 </BorderPane>
