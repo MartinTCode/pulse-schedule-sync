@@ -1,0 +1,33 @@
+# Maven build output
+/target/
+dependency-reduced-pom.xml
+
+# Logs and crash files
+*.log
+hs_err_pid*
+replay_pid*
+
+# IDE configs
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled artifacts
+*.class
+*.jar
+*.war
+*.ear
+
+# Test & coverage reports
+/surefire-reports/
+/failsafe-reports/
+/jacoco.exec
+
+# Local config & secrets
+/application.properties
+/application.yml
+.env

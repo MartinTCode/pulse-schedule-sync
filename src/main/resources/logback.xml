@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Define log pattern with timestamp -->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+    <property name="LOG_FILE_PATH" value="logs"/>
+
+    <!-- Define timestamp for unique file names -->
+    <timestamp key="bySecond" datePattern="yyyy-MM-dd_HH-mm-ss"/>
+
+    <!-- File Appender - All logs with datetime stamp in filename -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_FILE_PATH}/pulse-${bySecond}.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- File Appender - Debug logs only with datetime stamp -->
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_FILE_PATH}/debug-${bySecond}.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Logger configurations -->
+    <!-- Set your application loggers to DEBUG level for detailed logging -->
+    <logger name="com.pulse" level="DEBUG"/>
+
+    <!-- Jersey REST framework - DEBUG to see request/response details and errors -->
+    <logger name="org.glassfish.jersey" level="DEBUG"/>
+    
+    <!-- Keep other third-party libraries at INFO level to reduce noise -->
+    <logger name="org.hibernate" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    
+    <!-- Grizzly HTTP server - DEBUG for request errors -->
+    <logger name="org.glassfish.grizzly" level="DEBUG"/>
+
+    <!-- Root Logger - File only, no console -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="DEBUG_FILE"/>
+    </root>
+</configuration>
