@@ -23,8 +23,22 @@ public class TestDashboardController {
     @FXML
     private Label canvasTestStatusLabel;
     
+    @FXML
+    private TextField scheduleUrlField;
+    
+    @FXML
+    private Label scheduleStatusLabel;
+    
+    @FXML
+    private TextField transferUrlField;
+    
+    @FXML
+    private Label transferStatusLabel;
+    
     private static final String HEALTH_URL = "http://localhost:8080/health";
     private static final String CANVAS_TEST_URL = "http://localhost:8080/health/canvas-test";
+    private static final String SCHEDULE_URL = "http://localhost:8080/api/schedule";
+    private static final String TRANSFER_URL = "http://localhost:8080/api/transfer";
     
     @FXML
     public void initialize() {
@@ -39,9 +53,21 @@ public class TestDashboardController {
             canvasTestUrlField.setEditable(false);
         }
         
+        if (scheduleUrlField != null) {
+            scheduleUrlField.setText(SCHEDULE_URL);
+            scheduleUrlField.setEditable(false);
+        }
+        
+        if (transferUrlField != null) {
+            transferUrlField.setText(TRANSFER_URL);
+            transferUrlField.setEditable(false);
+        }
+        
         // Check server status
         checkServerStatus();
         testCanvasConnection();
+        testScheduleEndpoint();
+        testTransferEndpoint();
     }
     
     private void checkServerStatus() {
@@ -143,5 +169,81 @@ public class TestDashboardController {
         } catch (Exception e) {
             return "";
         }
+    }
+    
+    private void testScheduleEndpoint() {
+        new Thread(() -> {
+            try {
+                URL url = new URI(SCHEDULE_URL).toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                try {
+                    conn.setConnectTimeout(2000);
+                    conn.setReadTimeout(2000);
+                    conn.setRequestMethod("GET");
+                    
+                    int responseCode = conn.getResponseCode();
+                    boolean isOnline = (responseCode >= 200 && responseCode < 300);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (scheduleStatusLabel != null) {
+                            if (isOnline) {
+                                scheduleStatusLabel.setText("Status: ✓ Endpoint responding");
+                                scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
+                            } else {
+                                scheduleStatusLabel.setText("Status: ✗ Error (HTTP " + responseCode + ")");
+                                scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
+                            }
+                        }
+                    });
+                } finally {
+                    conn.disconnect();
+                }
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    if (scheduleStatusLabel != null) {
+                        scheduleStatusLabel.setText("Status: ✗ Cannot reach endpoint");
+                        scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
+                    }
+                });
+            }
+        }).start();
+    }
+    
+    private void testTransferEndpoint() {
+        new Thread(() -> {
+            try {
+                URL url = new URI(TRANSFER_URL).toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                try {
+                    conn.setConnectTimeout(2000);
+                    conn.setReadTimeout(2000);
+                    conn.setRequestMethod("POST");
+                    
+                    int responseCode = conn.getResponseCode();
+                    boolean isOnline = (responseCode >= 200 && responseCode < 300);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (transferStatusLabel != null) {
+                            if (isOnline) {
+                                transferStatusLabel.setText("Status: ✓ Endpoint responding");
+                                transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
+                            } else {
+                                transferStatusLabel.setText("Status: ✗ Error (HTTP " + responseCode + ")");
+                                transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
+                            }
+                        }
+                    });
+                } finally {
+                    conn.disconnect();
+                }
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    if (transferStatusLabel != null) {
+                        transferStatusLabel.setText("Status: ✗ Cannot reach endpoint");
+                        transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
+                    }
+                });
+            }
+        }).start();
     }
 }
