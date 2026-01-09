@@ -53,7 +53,7 @@
                 <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
                 <TextField fx:id="healthUrlField" 
                            style="-fx-font-size: 10; -fx-padding: 5; -fx-border-color: #ccc;"/>
-                <Label text="Expected Response: {status: ok}" 
+                <Label text="Expected Response: {status: UP}" 
                        style="-fx-font-size: 10; -fx-text-fill: #999;"/>
             </VBox>
             

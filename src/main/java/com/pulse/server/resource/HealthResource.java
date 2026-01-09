@@ -14,7 +14,7 @@ public class HealthResource {
 
     @GET
     public Response health() {
-        return Response.ok("{\"status\": \"ok\"}").build();
+        return Response.ok("{\"status\": \"UP\"}").build();
     }
 
     /**
