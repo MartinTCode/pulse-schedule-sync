@@ -57,22 +57,22 @@
                        style="-fx-font-size: 10; -fx-text-fill: #999;"/>
             </VBox>
             
-            <!-- Canvas API Test Endpoint -->
+            <!-- Canvas Auth Test Endpoint -->
             <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-padding: 10;">
-                <Label text="2. Canvas API Test Endpoint" 
+                <Label text="2. Canvas Auth Test Endpoint" 
                        style="-fx-font-size: 12; -fx-text-fill: #333; -fx-font-weight: bold;"/>
                 <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
                 <TextField fx:id="canvasTestUrlField" 
                            style="-fx-font-size: 10; -fx-padding: 5; -fx-border-color: #ccc;"/>
                 <Label text="Expected: success true, Canvas connection successful..." 
                        style="-fx-font-size: 10; -fx-text-fill: #999;"/>
-                <Label fx:id="canvasTestStatusLabel" text="Status: Not tested" 
+                <Label fx:id="canvasTestStatusLabel" text="Status: Not automatically tested" 
                        style="-fx-font-size: 10; -fx-text-fill: #ffc107;"/>
             </VBox>
             
             <!-- Schedule Retrieval Endpoint -->
             <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-padding: 10;">
-                <Label text="3. Schedule Retrieval Endpoint (GET)" 
+                <Label text="3. TimeEdit Schedule Retrieval Endpoint (GET)" 
                        style="-fx-font-size: 12; -fx-text-fill: #333; -fx-font-weight: bold;"/>
                 <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
                 <TextField fx:id="scheduleUrlField" 
@@ -85,14 +85,14 @@
             
             <!-- Schedule Transfer Endpoint -->
             <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-padding: 10;">
-                <Label text="4. Schedule Transfer Endpoint (POST)" 
+                <Label text="4. Canvas Schedule Publish Endpoint (POST)" 
                        style="-fx-font-size: 12; -fx-text-fill: #333; -fx-font-weight: bold;"/>
                 <Label text="URL:" style="-fx-font-size: 10; -fx-text-fill: #666;"/>
                 <TextField fx:id="transferUrlField" 
                            style="-fx-font-size: 10; -fx-padding: 5; -fx-border-color: #ccc;"/>
                 <Label text="Note: Use Postman or curl to test POST requests" 
                        style="-fx-font-size: 10; -fx-text-fill: #999;"/>
-                <Label text="curl -X POST http://localhost:8080/api/transfer" 
+                <Label text="curl -X POST http://localhost:8080/api/canvas/publish" 
                        style="-fx-font-size: 9; -fx-text-fill: #666; -fx-font-family: 'Courier New';"/>
                 <Label fx:id="transferStatusLabel" text="Status: Not tested" 
                        style="-fx-font-size: 10; -fx-text-fill: #ffc107;"/>

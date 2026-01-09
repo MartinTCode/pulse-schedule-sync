@@ -36,9 +36,9 @@ public class TestDashboardController {
     private Label transferStatusLabel;
     
     private static final String HEALTH_URL = "http://localhost:8080/health";
-    private static final String CANVAS_TEST_URL = "http://localhost:8080/health/canvas-test";
-    private static final String SCHEDULE_URL = "http://localhost:8080/api/schedule";
-    private static final String TRANSFER_URL = "http://localhost:8080/api/transfer";
+    private static final String CANVAS_TEST_URL = "http://localhost:8080/health/canvas-auth";
+    private static final String SCHEDULE_URL = "http://localhost:8080/api/timeedit/schedule";
+    private static final String TRANSFER_URL = "http://localhost:8080/api/canvas/publish";
     
     @FXML
     public void initialize() {
@@ -62,13 +62,16 @@ public class TestDashboardController {
             transferUrlField.setText(TRANSFER_URL);
             transferUrlField.setEditable(false);
         }
-        
         // Check server status
         checkServerStatus();
-        testCanvasConnection();
+        
         testScheduleEndpoint();
         testTransferEndpoint();
+        // testCanvasConnection();
+        // Health checks can be done manually by visiting the endpoints in browser
+        // this to avoid overloading the API rate
     }
+
     
     private void checkServerStatus() {
         new Thread(() -> {
@@ -86,10 +89,10 @@ public class TestDashboardController {
                     javafx.application.Platform.runLater(() -> {
                         if (statusLabel != null) {
                             if (isOnline) {
-                                statusLabel.setText("REST Backend: Online ✓");
+                                statusLabel.setText("REST Backend: Online ");
                                 statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #28a745; -fx-font-weight: bold;");
                             } else {
-                                statusLabel.setText("REST Backend: Offline ✗");
+                                statusLabel.setText("REST Backend: Offline ");
                                 statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #dc3545; -fx-font-weight: bold;");
                             }
                         }
@@ -100,7 +103,7 @@ public class TestDashboardController {
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     if (statusLabel != null) {
-                        statusLabel.setText("REST Backend: Offline ✗");
+                        statusLabel.setText("REST Backend: Offline ");
                         statusLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #dc3545; -fx-font-weight: bold;");
                     }
                 });
@@ -124,22 +127,22 @@ public class TestDashboardController {
                     javafx.application.Platform.runLater(() -> {
                         if (canvasTestStatusLabel != null) {
                             if (responseCode == 200) {
-                                canvasTestStatusLabel.setText("Status: ✓ Connected (check response in browser)");
+                                canvasTestStatusLabel.setText("Status: Connected (check response in browser)");
                                 canvasTestStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
                             } else if (responseCode == 503) {
                                 // Try to extract error message from response
-                                String statusMsg = "Status: ✗ Connection Failed";
+                                String statusMsg = "Status: Connection Failed";
                                 if (responseBody.contains("CANVAS_TOKEN")) {
-                                    statusMsg = "Status: ✗ Missing CANVAS_TOKEN in .env";
+                                    statusMsg = "Status: Missing CANVAS_TOKEN in .env";
                                 } else if (responseBody.contains("CANVAS_BASE_URL")) {
-                                    statusMsg = "Status: ✗ Missing CANVAS_BASE_URL in .env";
+                                    statusMsg = "Status: Missing CANVAS_BASE_URL in .env";
                                 } else if (responseBody.contains("authentication failed")) {
-                                    statusMsg = "Status: ✗ Authentication Failed (invalid token)";
+                                    statusMsg = "Status: Authentication Failed (invalid token)";
                                 }
                                 canvasTestStatusLabel.setText(statusMsg);
                                 canvasTestStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                             } else {
-                                canvasTestStatusLabel.setText("Status: ✗ Error (HTTP " + responseCode + ")");
+                                canvasTestStatusLabel.setText("Status: Error (HTTP " + responseCode + ")");
                                 canvasTestStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                             }
                         }
@@ -150,7 +153,7 @@ public class TestDashboardController {
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     if (canvasTestStatusLabel != null) {
-                        canvasTestStatusLabel.setText("Status: ✗ Cannot reach endpoint");
+                        canvasTestStatusLabel.setText("Status: Cannot reach endpoint");
                         canvasTestStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                     }
                 });
@@ -187,10 +190,10 @@ public class TestDashboardController {
                     javafx.application.Platform.runLater(() -> {
                         if (scheduleStatusLabel != null) {
                             if (isOnline) {
-                                scheduleStatusLabel.setText("Status: ✓ Endpoint responding");
+                                scheduleStatusLabel.setText("Status: Endpoint responding");
                                 scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
                             } else {
-                                scheduleStatusLabel.setText("Status: ✗ Error (HTTP " + responseCode + ")");
+                                scheduleStatusLabel.setText("Status: Error (HTTP " + responseCode + ")");
                                 scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                             }
                         }
@@ -201,7 +204,7 @@ public class TestDashboardController {
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     if (scheduleStatusLabel != null) {
-                        scheduleStatusLabel.setText("Status: ✗ Cannot reach endpoint");
+                        scheduleStatusLabel.setText("Status: Cannot reach endpoint");
                         scheduleStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                     }
                 });
@@ -225,10 +228,10 @@ public class TestDashboardController {
                     javafx.application.Platform.runLater(() -> {
                         if (transferStatusLabel != null) {
                             if (isOnline) {
-                                transferStatusLabel.setText("Status: ✓ Endpoint responding");
+                                transferStatusLabel.setText("Status: Endpoint responding");
                                 transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
                             } else {
-                                transferStatusLabel.setText("Status: ✗ Error (HTTP " + responseCode + ")");
+                                transferStatusLabel.setText("Status: Error (HTTP " + responseCode + ")");
                                 transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                             }
                         }
@@ -239,7 +242,7 @@ public class TestDashboardController {
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     if (transferStatusLabel != null) {
-                        transferStatusLabel.setText("Status: ✗ Cannot reach endpoint");
+                        transferStatusLabel.setText("Status: Cannot reach endpoint");
                         transferStatusLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
                     }
                 });

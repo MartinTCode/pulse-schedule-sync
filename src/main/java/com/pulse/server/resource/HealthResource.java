@@ -23,7 +23,7 @@ public class HealthResource {
      * Equivalent to: curl -H "Authorization: Bearer $CANVAS_TOKEN" $CANVAS_BASE_URL/api/v1/users/self/profile
      */
     @GET
-    @Path("/canvas-test")
+    @Path("/canvas-auth")
     public Response testCanvasApi() {
         CanvasApiTester.CanvasTestResult result = CanvasApiTester.testCanvasConnection();
         
