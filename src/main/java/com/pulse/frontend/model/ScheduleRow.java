@@ -46,7 +46,7 @@ public class ScheduleRow {
 
     public String getSlutTid() {
         return slutTid.get();
-    }
+    }   
 
     public String getPlats() {
         return plats.get();
@@ -55,6 +55,7 @@ public class ScheduleRow {
     public boolean isAndrad() {
         return andrad.get();
     }
+
 
     // Property getters for binding
     public StringProperty kursProperty() {
@@ -83,6 +84,31 @@ public class ScheduleRow {
 
     public BooleanProperty andradProperty() {
         return andrad;
+    }
+
+    // Setters
+    public void setLarare(String larare) {
+        this.larare.set(larare);
+    }
+
+    public void setDatum(String datum) {
+        this.datum.set(datum);
+    }
+
+    public void setPlats(String plats) {
+        this.plats.set(plats);
+    }
+
+    public void setStartTid(String startTid) {
+        this.startTid.set(startTid);
+    }
+
+    public void setSlutTid(String slutTid) {
+        this.slutTid.set(slutTid);
+    }
+
+    public void setAndrad(boolean andrad) {
+        this.andrad.set(andrad);
     }
     
 }

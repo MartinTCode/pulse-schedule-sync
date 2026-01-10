@@ -95,11 +95,15 @@ public class ScheduleOverviewController implements Initializable {
     }
 
     @FXML private void onAndraHandelseKnappClick() {
-        if (schemaTabell.getSelectionModel().getSelectedItem() == null) {
+
+        Scene currentScene = andraHandelseKnapp.getScene();
+        
+        ScheduleRow selected = schemaTabell.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
             visaStatusSchema.setText("Vänligen välj en händelse att ändra.");
             visaStatusSchema.setVisible(true);
             return;
-
         }
         
         try {
@@ -107,12 +111,19 @@ public class ScheduleOverviewController implements Initializable {
 
             Parent root = loader.load();
 
+            ScheduleEditController controller = loader.getController();
+
+            //Send selected ScheduleRow to edit controller
+            controller.setScheduleRow(selected);
+
+            controller.setPreviousScene(currentScene);
+
             Stage stage = (Stage) andraHandelseKnapp.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
 
         } catch (IOException e) {
-            visaStatusSchema.setText("Kunde inte öppna ändra händelse fönstret.");
+            visaStatusSchema.setText("Kunde inte öppna granskningsvyn.");
             visaStatusSchema.setVisible(true);
         }
 

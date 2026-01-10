@@ -1,8 +1,11 @@
 package com.pulse.frontend;
 
+import com.pulse.frontend.model.ScheduleRow;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.time.LocalDate;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,12 +14,27 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 public class ScheduleEditController implements Initializable {
+
     @FXML private Button tillbakaTillSchemanKnapp;
+    @FXML private Button sparaAndringKnapp;
 
     @FXML private Label visaStatusSpara;
+    @FXML private Label visaKurs;
+
+    @FXML private DatePicker visaDatum;
+    @FXML private TextField visaStarttid;
+    @FXML private TextField visaSluttid;
+    @FXML private TextField visaPlats;
+    @FXML private TextArea visaBeskrivning;
+
+    private ScheduleRow aktuellHandelse;
+    private Scene previousScene;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -24,21 +42,50 @@ public class ScheduleEditController implements Initializable {
         visaStatusSpara.setVisible(false);
     }
 
-    @FXML private void onTillbakaTillSchemanKnappClick() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Schemaoversikt_ImportTimeEdit.fxml"));
+    public void setPreviousScene(Scene scene) {
+        this.previousScene = scene;
+    }
 
-            Parent root = loader.load();
+    //Gets ScheduleRow from overview
+    public void setScheduleRow(ScheduleRow aktuellHandelse) {
+        this.aktuellHandelse = aktuellHandelse;
 
-            Stage stage = (Stage) tillbakaTillSchemanKnapp.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+        //Show current event details in fields
+        visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
 
-        } catch (IOException e) {
-            visaStatusSpara.setText("Fel vid återgång till schemaöversikt.");
+        visaDatum.setValue(LocalDate.parse(aktuellHandelse.getDatum()));
+        visaStarttid.setText(aktuellHandelse.getStartTid());
+        visaSluttid.setText(aktuellHandelse.getSlutTid());
+        visaPlats.setText(aktuellHandelse.getPlats());
+
+
+    }
+
+    //Event handler for saving changes button
+    @FXML private void onSparaAndringKnappClick() {
+        if (aktuellHandelse == null) {
+            visaStatusSpara.setText("Ingen händelse vald att spara.");
             visaStatusSpara.setVisible(true);
+            return;   
+        }    
 
-        }
+        //Update ScheduleRow with edited details (Later API call to save changes)
+        aktuellHandelse.setDatum(visaDatum.getValue().toString());
+        aktuellHandelse.setStartTid(visaStarttid.getText());
+        aktuellHandelse.setSlutTid(visaSluttid.getText());
+        aktuellHandelse.setPlats(visaPlats.getText());
+        aktuellHandelse.setAndrad(true);
+
+        visaStatusSpara.setText("Ändringar sparade lokalt. Publicera schema för att skicka till Canvas.");
+        visaStatusSpara.setVisible(true);
+        visaStatusSpara.setStyle("-fx-text-fill: green;");
+
+
+    }
+
+    @FXML private void onTillbakaTillSchemanKnappClick() {
+        Stage stage = (Stage) tillbakaTillSchemanKnapp.getScene().getWindow();
+        stage.setScene(previousScene);   
 
     }
 

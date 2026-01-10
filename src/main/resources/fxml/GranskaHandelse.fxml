@@ -91,7 +91,7 @@
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                <children>
                   <Button fx:id="tillbakaTillSchemanKnapp" mnemonicParsing="false" prefHeight="31.0" prefWidth="87.0" text="Tillbaka" onAction="#onTillbakaTillSchemanKnappClick"/>
-                  <Button fx:id="sparaAndringKnapp" mnemonicParsing="false" prefHeight="31.0" prefWidth="129.0" text="Spara ändringar">
+                  <Button fx:id="sparaAndringKnapp" mnemonicParsing="false" prefHeight="31.0" prefWidth="129.0" text="Spara ändringar" onAction="#onSparaAndringKnappClick">
                      <HBox.margin>
                         <Insets left="30.0" />
                      </HBox.margin>
