@@ -2,22 +2,23 @@ package com.pulse.frontend;
 
 import com.pulse.frontend.model.ScheduleRow;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.time.LocalDate;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
 
 public class ScheduleEditController implements Initializable {
 
@@ -67,7 +68,22 @@ public class ScheduleEditController implements Initializable {
             visaStatusSpara.setText("Ingen händelse vald att spara.");
             visaStatusSpara.setVisible(true);
             return;   
-        }    
+        }  
+        
+        // Confirm with user before saving changes
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Bekräfta sparande av ändringar");
+        confirm.setHeaderText("Är du säker på att du vill spara ändringarna?");
+        confirm.setContentText("Ändringarna sparas lokalt och kan publiceras sen.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+        visaStatusSpara.setText("Ändringar sparades inte.");
+        visaStatusSpara.setStyle("-fx-text-fill: orange;");
+        visaStatusSpara.setVisible(true);
+        return;
+        }
 
         //Update ScheduleRow with edited details (Later API call to save changes)
         aktuellHandelse.setDatum(visaDatum.getValue().toString());

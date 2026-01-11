@@ -17,6 +17,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableCell;
 import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import java.util.Optional;
+import javafx.scene.control.ButtonType;
+
 
 
 
@@ -128,4 +132,31 @@ public class ScheduleOverviewController implements Initializable {
         }
 
     }
+
+    @FXML private void onPubliceraSchemaKnappClick() {
+        // Handle publishing schedule to Canvas
+        boolean finnsAndringar = schemaTabell.getItems().stream().anyMatch(ScheduleRow::isAndrad);
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Bekräfta publicering av schema");
+        confirm.setHeaderText("Är du säker på att du vill publicera schemat till Canvas?");
+        confirm.setContentText("Alla scheman och eventuella ändringar kommer att skickas till Canvas.");
+        
+        Optional<ButtonType> result = confirm.showAndWait();
+
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            visaStatusSchema.setText("Publicering avbröts.");
+            visaStatusSchema.setStyle("-fx-text-fill: orange;");
+            visaStatusSchema.setVisible(true);
+            return;
+        }
+
+        visaStatusSchema.setText("Schema publicerat till Canvas.");
+        visaStatusSchema.setStyle("-fx-text-fill: green;");
+        visaStatusSchema.setVisible(true);
+
+        // TODO: Implement actual API call to publish schedule to Canvas
+
+    }
+
 }

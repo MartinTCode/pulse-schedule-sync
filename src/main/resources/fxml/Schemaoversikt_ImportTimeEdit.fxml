@@ -59,7 +59,7 @@
                <HBox.margin>
                   <Insets right="30.0" top="15.0" />
                </HBox.margin></Button>
-            <Button fx:id="publiceraSchemaKnapp" mnemonicParsing="false" prefHeight="31.0" text="Publicera till Canvas">
+            <Button fx:id="publiceraSchemaKnapp" mnemonicParsing="false" prefHeight="31.0" text="Publicera till Canvas" onAction="#onPubliceraSchemaKnappClick">
                <HBox.margin>
                   <Insets top="15.0" />
                </HBox.margin>
