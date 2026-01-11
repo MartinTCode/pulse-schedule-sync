@@ -25,8 +25,10 @@ public class TimeEditParser {
 	}
 
 	public static TimeEditScheduleDTO parseSchedule(String rawJson, String timeeditUrl, ZoneId zoneId) {
-		
-        // basic requirments
+		// Parse raw TimeEdit JSON into our internal schedule DTO.
+		// This method does *not* leak raw upstream fields; it only returns normalized contract data.
+
+		// 1) Basic input validation so errors are explicit and consistent.
         if (rawJson == null || rawJson.isBlank()) {
 			throw new TimeEditParseException("TimeEdit response body is empty");
 		}
@@ -39,7 +41,7 @@ public class TimeEditParser {
             // parse JSON while keeping it from breaking if unknown fields show up.
 			JsonNode root = objectMapper.readTree(rawJson);
 
-            // read column headers to find indices of optional fields
+			// 2) Read column headers so we can interpret the columns[] array.
 			List<String> headers = readStringArray(root.get("columnheaders"));
 			
             int locationIndex = findHeaderIndex(headers, "location");
@@ -52,10 +54,10 @@ public class TimeEditParser {
 				throw new TimeEditParseException("Missing or invalid 'reservations' array");
 			}
 
-            // parse each reservation (calendar event) into TimeEditEventDTO
+			// 3) Map each reservation into a TimeEditEventDTO.
 			List<TimeEditEventDTO> events = new ArrayList<>();
 			for (JsonNode reservation : reservationsNode) {
-                // required fields
+				// Required fields: if any is missing/blank we fail the whole parse (422).
 
 				String id = readRequiredText(reservation, "id");
 				// read date and time fields
@@ -63,9 +65,6 @@ public class TimeEditParser {
 				String startTime = readRequiredText(reservation, "starttime");
 				String endDate = readRequiredText(reservation, "enddate");
 				String endTime = readRequiredText(reservation, "endtime");
-
-
-
                 // convert to OffsetDateTime
 				OffsetDateTime start = toOffsetDateTime(startDate, startTime, zoneId);
 				OffsetDateTime end = toOffsetDateTime(endDate, endTime, zoneId);
@@ -78,6 +77,7 @@ public class TimeEditParser {
 					title = "(untitled)";
 				}
 
+				// Location is best-effort; if the header isn't present we return "".
 				String location = "";
                 // find location if index available (-1 means not found)
 				if (locationIndex >= 0) {
@@ -86,6 +86,8 @@ public class TimeEditParser {
                 // Sets description to the first non-blank value from 
                 // the reservation’s “Comment” column (preferred) or 
                 // “Text” column, trimmed; otherwise ""
+				// Description is optional; prefer Comment then Text.
+				// normalizeFreeText() trims and also turns ", " placeholders into "".
 				String description = "";
 				description = firstNonBlank(
 						normalizeFreeText(commentIndex != null ? getColumnValue(columns, commentIndex) : ""),
@@ -104,7 +106,7 @@ public class TimeEditParser {
 				events.add(event);
 			}
 
-            // create summary DTO
+			// 4) Summary is derived from the events list.
 			OffsetDateTime rangeStart = events.stream()
 					.map(TimeEditEventDTO::getStart)
 					.filter(Objects::nonNull)
@@ -122,7 +124,8 @@ public class TimeEditParser {
             return new TimeEditScheduleDTO(
 					"TimeEdit",
 					timeeditUrl,
-					OffsetDateTime.now(zoneId),
+					// Keep timestamps stable/pretty in JSON by stripping nanoseconds
+					OffsetDateTime.now(zoneId).withNano(0),
 					events,
 					summary
 			);
@@ -212,8 +215,10 @@ public class TimeEditParser {
 		if (s == null) {
 			return "";
 		}
-		// TimeEdit sometimes represents an "empty" text field as ", " (comma + whitespace).
-		// Treat strings made only of commas/whitespace as empty.
+		// TimeEdit can output comma-separated composite columns.
+		// If a column is built from multiple subfields (e.g. "Text, Text") and all subfields are empty,
+		// the rendered value can become ", " (delimiter without any content). We treat that as empty.
+		// We only strip commas/whitespace-only strings; real text containing commas is preserved.
 		boolean onlyCommasOrWhitespace = true;
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
