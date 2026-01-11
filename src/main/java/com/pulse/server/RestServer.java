@@ -8,6 +8,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.validation.ValidationFeature;
 
+import com.pulse.config.ObjectMapperContextResolver;
 import com.pulse.server.resource.ScheduleResource;
 import com.pulse.server.resource.TransferResource;
 import com.pulse.server.resource.HealthResource;
@@ -36,8 +37,8 @@ public class RestServer {
         rc.register(JacksonFeature.class);
         rc.register(ValidationFeature.class);
 
-        // Optional: custom ObjectMapper config
-        // rc.register(ObjectMapperProvider.class);
+        // Custom ObjectMapper for JSON serialization (ISO-8601 OffsetDateTime, etc.)
+        rc.register(ObjectMapperContextResolver.class);
 
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(baseUri), rc);
     }
