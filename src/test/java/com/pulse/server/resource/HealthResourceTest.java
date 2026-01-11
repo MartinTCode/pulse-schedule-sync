@@ -33,7 +33,7 @@ public class HealthResourceTest {
         get("/health")
             .then()
             .statusCode(200)
-            .body("status", equalTo("ok"));
+            .body("status", equalTo("UP"));
     }
 
     @Test
