@@ -5,6 +5,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.pulse.integration.canvas.CanvasApiTester;
 
@@ -31,5 +33,39 @@ public class HealthResource {
         return Response.status(statusCode)
                 .entity(result.toString())
                 .build();
+    }
+
+    /**
+     * Tests Canvas API connection and returns a standardized test result.
+     * Used to verify Canvas API is accessible before attempting to publish events.
+     * 
+     * Response format:
+     * {
+     *   "success": true|false,
+     *   "message": "Description of result"
+     * }
+     */
+    @GET
+    @Path("/canvas-test")
+    public Response testCanvasConnection() {
+        try {
+            CanvasApiTester.CanvasTestResult result = CanvasApiTester.testCanvasConnection();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", result.isSuccess());
+            response.put("message", result.getMessage());
+            
+            int statusCode = result.isSuccess() ? 200 : 503;
+            return Response.status(statusCode)
+                    .entity(response)
+                    .build();
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Canvas test failed: " + e.getMessage());
+            return Response.status(503)
+                    .entity(response)
+                    .build();
+        }
     }
 }
