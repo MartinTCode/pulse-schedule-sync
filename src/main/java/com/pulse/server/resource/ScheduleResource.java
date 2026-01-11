@@ -1,10 +1,9 @@
 package com.pulse.server.resource;
 
-import com.pulse.integration.timeedit.TimeEditClient;
+import com.pulse.integration.timeedit.TimeEditFetchException;
 import com.pulse.integration.timeedit.TimeEditParseException;
-import com.pulse.integration.timeedit.TimeEditParser;
-import com.pulse.integration.timeedit.TimeEditScheduleValidator;
 import com.pulse.integration.timeedit.dto.TimeEditScheduleDTO;
+import com.pulse.service.ScheduleFetchService;
 import com.pulse.util.ErrorCode;
 import com.pulse.util.ResponseBuilder;
 import jakarta.ws.rs.GET;
@@ -39,35 +38,20 @@ public class ScheduleResource {
             );
         }
 
-		// 2) Fetch the upstream TimeEdit JSON. The client encapsulates different failure modes
-		// (invalid URL, unreachable host, non-2xx response) and we map those to our API errors.
-        TimeEditClient.TimeEditResponse fetched = TimeEditClient.fetchSchedule(timeeditUrl);
-        if (!fetched.isSuccess()) {
-			// Include details to aid debugging without returning the raw upstream payload.
-            Map<String, Object> details = new HashMap<>();
-            details.put("timeeditUrl", timeeditUrl);
-            if (fetched.getHttpStatusCode() != null) {
-                details.put("upstreamStatus", fetched.getHttpStatusCode());
-            }
-
-            // Map TimeEditClient error categories to the API contract error codes.
-            return switch (String.valueOf(fetched.getErrorCode())) {
-                case "INVALID_TIMEEDIT_URL" -> ResponseBuilder.error(ErrorCode.INVALID_TIMEEDIT_URL, fetched.getErrorMessage(), details);
-                case "TIMEEDIT_UNREACHABLE" -> ResponseBuilder.error(ErrorCode.TIMEEDIT_UNREACHABLE, fetched.getErrorMessage(), details);
-                case "TIMEEDIT_ERROR_RESPONSE" -> ResponseBuilder.error(ErrorCode.TIMEEDIT_ERROR_RESPONSE, fetched.getErrorMessage(), details);
-                default -> ResponseBuilder.error(ErrorCode.TIMEEDIT_UNREACHABLE, fetched.getErrorMessage(), details);
-            };
-        }
-
         try {
-			// 3) Parse + normalize: convert TimeEdit's schema into our contract DTO.
-            TimeEditScheduleDTO schedule = TimeEditParser.parseSchedule(
-                    fetched.getRawBody(),
-                    timeeditUrl,
-                    ZoneId.systemDefault()
-            );
-			TimeEditScheduleValidator.validate(schedule);
+			// 2) Fetch + parse + validate is done in the service layer.
+			TimeEditScheduleDTO schedule = ScheduleFetchService.fetchAndParseTimeEditSchedule(
+					timeeditUrl,
+					ZoneId.systemDefault()
+			);
             return Response.ok(schedule).build();
+		} catch (TimeEditFetchException e) {
+			Map<String, Object> details = new HashMap<>();
+			details.put("timeeditUrl", timeeditUrl);
+			if (e.getUpstreamStatus() != null) {
+				details.put("upstreamStatus", e.getUpstreamStatus());
+			}
+			return ResponseBuilder.error(e.getErrorCode(), e.getMessage(), details);
         } catch (TimeEditParseException e) {
 			// The JSON was fetched successfully but could not be normalized (schema mismatch,
 			// missing required fields, invalid date/time, etc.). Return 422 parse error.
