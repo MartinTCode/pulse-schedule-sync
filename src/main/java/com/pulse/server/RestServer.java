@@ -11,6 +11,7 @@ import org.glassfish.jersey.server.validation.ValidationFeature;
 import com.pulse.server.resource.ScheduleResource;
 import com.pulse.server.resource.TransferResource;
 import com.pulse.server.resource.HealthResource;
+import com.pulse.server.resource.TestErrorResource;
 
 public class RestServer {
 
@@ -28,6 +29,7 @@ public class RestServer {
         rc.register(ScheduleResource.class);
         rc.register(TransferResource.class);
         rc.register(HealthResource.class);
+        rc.register(TestErrorResource.class);  // Temporary test endpoint
 
 
         // JSON and validation
