@@ -85,5 +85,6 @@ What to check:
 
 - Resource-level tests should not depend on the real TimeEdit service.
 - Use a fixed TimeEdit JSON sample stored locally (captured from a real TimeEdit URL) and assert the normalized output.
+	- Suggested fixture location: `src/test/resources/timeedit/sample-holidays.json`
 
 
