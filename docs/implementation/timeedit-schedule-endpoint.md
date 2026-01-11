@@ -22,8 +22,11 @@ It complements (but does not replace) the API contract in [docs/api-contract.md]
 ## Implementation outline
 
 1. `ScheduleResource` validates `timeeditUrl` is present.
-2. `ScheduleFetchService` calls `TimeEditClient.fetchSchedule(timeeditUrl)`.
-3. On HTTP success, `TimeEditParser` parses the raw TimeEdit payload:
+	2. `ScheduleFetchService` orchestrates the integration:
+		- calls `TimeEditClient.fetchSchedule(timeeditUrl)`
+		- on HTTP success, parses via `TimeEditParser`
+		- validates invariants via `TimeEditScheduleValidator` (e.g. `end > start`)
+	3. On HTTP success, `TimeEditParser` parses the raw TimeEdit payload:
 	 - reads `reservations[]`
 	 - maps each reservation into a contract `event`
 4. Compute `summary`:
