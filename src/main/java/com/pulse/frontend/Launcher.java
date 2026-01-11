@@ -21,7 +21,7 @@ public class Launcher extends Application {
 
         // Check if test dashboard should be loaded instead
         boolean loadTestDashboard = "true".equals(System.getProperty("test-dashboard"));
-        String fxmlResource = loadTestDashboard ? "/fxml/TestDashboard.fxml" : "/fxml/ScheduleOverview.fxml";
+        String fxmlResource = loadTestDashboard ? "/fxml/TestDashboard.fxml" : "/fxml/SkrivaInURLSchema.fxml";
         String windowTitle = loadTestDashboard ? "API Test Dashboard" : "TimeEdit → Canvas Transfer";
 
         FXMLLoader loader = new FXMLLoader(
