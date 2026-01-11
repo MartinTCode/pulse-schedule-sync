@@ -88,8 +88,8 @@ public class TimeEditParser {
                 // “Text” column, trimmed; otherwise ""
 				String description = "";
 				description = firstNonBlank(
-						safeTrim(commentIndex != null ? getColumnValue(columns, commentIndex) : ""),
-						safeTrim(textIndex != null ? getColumnValue(columns, textIndex) : "")
+						normalizeFreeText(commentIndex != null ? getColumnValue(columns, commentIndex) : ""),
+						normalizeFreeText(textIndex != null ? getColumnValue(columns, textIndex) : "")
 				);
 
                 // create event DTO
@@ -206,6 +206,26 @@ public class TimeEditParser {
 
 	private static String safeTrim(String s) {
 		return s == null ? "" : s.trim();
+	}
+
+	private static String normalizeFreeText(String s) {
+		if (s == null) {
+			return "";
+		}
+		// TimeEdit sometimes represents an "empty" text field as ", " (comma + whitespace).
+		// Treat strings made only of commas/whitespace as empty.
+		boolean onlyCommasOrWhitespace = true;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c != ',' && !Character.isWhitespace(c)) {
+				onlyCommasOrWhitespace = false;
+				break;
+			}
+		}
+		if (onlyCommasOrWhitespace) {
+			return "";
+		}
+		return s.trim();
 	}
 
 	private static String firstNonBlank(String... values) {
