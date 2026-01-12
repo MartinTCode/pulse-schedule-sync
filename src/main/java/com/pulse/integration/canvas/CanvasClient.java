@@ -69,11 +69,25 @@ public class CanvasClient {
             return new CanvasResponse<>(false, "CANVAS_ERROR_RESPONSE", message, httpStatus, null);
         }
 
-        public boolean isSuccess() { return success; }
-        public String getErrorCode() { return errorCode; }
-        public String getErrorMessage() { return errorMessage; }
-        public Integer getHttpStatusCode() { return httpStatusCode; }
-        public T getData() { return data; }
+        public boolean isSuccess() { 
+            return success; 
+        }
+
+        public String getErrorCode() { 
+            return errorCode; 
+        }
+        
+        public String getErrorMessage() { 
+            return errorMessage; 
+        }
+
+        public Integer getHttpStatusCode() { 
+            return httpStatusCode; 
+        }
+
+        public T getData() { 
+            return data; 
+        }
     }
 }
 
