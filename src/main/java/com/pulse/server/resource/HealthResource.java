@@ -9,10 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.pulse.integration.canvas.CanvasApiTester;
+import com.pulse.integration.canvas.CanvasClient;
+import com.pulse.integration.canvas.dto.CanvasUser;
 
 @Path("/health")
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthResource {
+    private final CanvasClient canvasClient = new CanvasClient();
 
     @GET
     public Response health() {
@@ -29,12 +32,25 @@ public class HealthResource {
     @GET
     @Path("/canvas-auth")
     public Response testCanvasApi() {
-        CanvasApiTester.CanvasTestResult result = CanvasApiTester.testCanvasConnection();
-        
-        int statusCode = result.isSuccess() ? 200 : 503;
-        return Response.status(statusCode)
-                .entity(result.toString())
-                .build();
+        CanvasClient.CanvasResponse<CanvasUser> result = canvasClient.testAuth();
+
+        if (result.isSuccess()) {
+            CanvasUser user = result.getData();
+
+            Map<String, Object> canvasUser = new HashMap<>();
+            canvasUser.put("id", user.id());
+            canvasUser.put("login", user.login());
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("canvasAuth", "OK");
+            body.put("message", "Canvas API connection successful");
+            body.put("canvasUser", canvasUser);
+
+            return Response.ok(body).build();
+        }
+
+        int status = mapCanvasAuthStatus(result.getErrorCode());
+        return errorEnvelope(status, result.getErrorCode(), result.getErrorMessage());
     }
 
     /**
@@ -69,5 +85,44 @@ public class HealthResource {
                     .entity(response)
                     .build();
         }
+    }
+
+    /**
+     * Maps Canvas API error codes to HTTP status codes.
+     * @param code Canvas error code
+     * @return HTTP status code
+     */
+    private int mapCanvasAuthStatus(String code) {
+        if (code == null) {
+            return 502;
+        }
+
+        return switch (code) {
+            case "CONFIG_ERROR" -> 500;
+            case "CANVAS_UNAUTHORIZED" -> 401;
+            case "CANVAS_UNREACHABLE", "CANVAS_ERROR_RESPONSE" -> 502;
+            default -> 502;
+        };
+    }
+
+    /**
+     * Builds a standardized error response envelope.
+     * @param httpStatus HTTP status code
+     * @param code 
+     * @param message 
+     * @return Response object with error envelope
+     */
+    private Response errorEnvelope(int httpStatus, String code, String message) {
+        Map<String, Object> details = new HashMap<>();
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("code", code);
+        error.put("message", message);
+        error.put("details", details);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", error);
+
+        return Response.status(httpStatus).entity(body).build();
     }
 }
