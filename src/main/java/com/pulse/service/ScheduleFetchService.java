@@ -4,6 +4,7 @@ import com.pulse.integration.timeedit.TimeEditClient;
 import com.pulse.integration.timeedit.TimeEditFetchException;
 import com.pulse.integration.timeedit.TimeEditParser;
 import com.pulse.integration.timeedit.TimeEditScheduleValidator;
+import com.pulse.integration.timeedit.TimeEditUrlNormalizer;
 import com.pulse.integration.timeedit.dto.TimeEditScheduleDTO;
 import com.pulse.util.ErrorCode;
 
@@ -12,7 +13,14 @@ import java.time.ZoneId;
 public class ScheduleFetchService {
 
 	public static TimeEditScheduleDTO fetchAndParseTimeEditSchedule(String timeeditUrl, ZoneId zoneId) {
-		TimeEditClient.TimeEditResponse fetched = TimeEditClient.fetchSchedule(timeeditUrl);
+		String normalizedUrl;
+		try {
+			normalizedUrl = TimeEditUrlNormalizer.ensureJsonUrl(timeeditUrl);
+		} catch (IllegalArgumentException e) {
+			throw new TimeEditFetchException(ErrorCode.INVALID_TIMEEDIT_URL, "URL format is invalid: " + e.getMessage(), null);
+		}
+
+		TimeEditClient.TimeEditResponse fetched = TimeEditClient.fetchSchedule(normalizedUrl);
 		if (!fetched.isSuccess()) {
 			ErrorCode errorCode = switch (String.valueOf(fetched.getErrorCode())) {
 				case "INVALID_TIMEEDIT_URL" -> ErrorCode.INVALID_TIMEEDIT_URL;
@@ -26,7 +34,7 @@ public class ScheduleFetchService {
 
 		TimeEditScheduleDTO schedule = TimeEditParser.parseSchedule(
 				fetched.getRawBody(),
-				timeeditUrl,
+				normalizedUrl,
 				zoneId
 		);
 		TimeEditScheduleValidator.validate(schedule);
