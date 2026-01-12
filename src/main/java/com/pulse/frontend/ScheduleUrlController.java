@@ -1,5 +1,12 @@
 package com.pulse.frontend;
 
+import com.pulse.frontend.api.ApiException;
+import com.pulse.frontend.api.ScheduleApiClient;
+import com.pulse.frontend.model.AppState;
+import com.pulse.integration.timeedit.dto.TimeEditScheduleDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -13,8 +20,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.concurrent.Task;
 
 public class ScheduleUrlController implements Initializable {
+
+	private static final Logger logger = LoggerFactory.getLogger(ScheduleUrlController.class);
+	private static final String API_BASE_URL = "http://localhost:8080";
 
     @FXML private TextField skrivUrlFalt;
     @FXML private Button laddaSchemaKnapp;
@@ -35,26 +46,70 @@ public class ScheduleUrlController implements Initializable {
             return;
         }
 
-        visaStatusLadda.setText("Laddar schema från URL...");
+        laddaSchemaKnapp.setDisable(true);
+        visaStatusLadda.setText("Laddar schema från server...");
         visaStatusLadda.setVisible(true);
 
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Schemaoversikt_ImportTimeEdit.fxml"));
-        
-            Parent root = loader.load();
+        ScheduleApiClient apiClient = new ScheduleApiClient(API_BASE_URL);
+        Task<TimeEditScheduleDTO> task = new Task<>() {
+            @Override
+            protected TimeEditScheduleDTO call() {
+                return apiClient.fetchTimeEditSchedule(url);
+            }
+        };
 
-            Stage stage = (Stage) laddaSchemaKnapp.getScene().getWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            visaStatusLadda.setText("Fel vid inläsning av schema: ");
+        task.setOnSucceeded(evt -> {
+            TimeEditScheduleDTO schedule = task.getValue();
+            AppState.setCurrentSchedule(schedule);
+            visaStatusLadda.setText("Schema laddat.");
             visaStatusLadda.setVisible(true);
-        }
+
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Schemaoversikt_ImportTimeEdit.fxml"));
+                Parent root = loader.load();
+                Stage stage = (Stage) laddaSchemaKnapp.getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.show();
+            } catch (IOException e) {
+                logger.error("Failed to load overview scene", e);
+                visaStatusLadda.setText("Fel vid inläsning av schemaöversikt.");
+                visaStatusLadda.setVisible(true);
+            } finally {
+                laddaSchemaKnapp.setDisable(false);
+            }
+        });
+
+        task.setOnFailed(evt -> {
+            Throwable ex = task.getException();
+            String userMessage = "Kunde inte ladda schema.";
+            if (ex instanceof ApiException apiEx) {
+                userMessage = apiErrorToSwedish(apiEx);
+                logger.warn("Schedule fetch failed: status={}, code={}, message={}", apiEx.getHttpStatus(), apiEx.getErrorCode(), apiEx.getMessage());
+            } else {
+                logger.error("Unexpected error fetching schedule", ex);
+            }
+            visaStatusLadda.setText(userMessage);
+            visaStatusLadda.setVisible(true);
+            laddaSchemaKnapp.setDisable(false);
+        });
+
+        Thread t = new Thread(task, "schedule-fetch");
+        t.setDaemon(true);
+        t.start();
 
 
 
+    }
+
+    private static String apiErrorToSwedish(ApiException e) {
+        String code = e.getErrorCode() == null ? "" : e.getErrorCode();
+        return switch (code) {
+            case "INVALID_TIMEEDIT_URL" -> "Ogiltig URL. Kontrollera länken och försök igen.";
+            case "TIMEEDIT_UNREACHABLE" -> "Kunde inte nå TimeEdit. Försök igen senare.";
+            case "TIMEEDIT_ERROR_RESPONSE" -> "TimeEdit svarade med ett fel.";
+            case "TIMEEDIT_PARSE_ERROR" -> "Kunde inte tolka TimeEdit-svaret (fel format).";
+            default -> "Kunde inte ladda schema (" + (e.getMessage() != null ? e.getMessage() : "okänt fel") + ")";
+        };
     }
     
 }

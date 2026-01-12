@@ -5,6 +5,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import com.pulse.frontend.model.ScheduleRow;
+import com.pulse.frontend.model.AppState;
+import com.pulse.integration.timeedit.dto.TimeEditEventDTO;
+import com.pulse.integration.timeedit.dto.TimeEditScheduleDTO;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,11 +23,15 @@ import javafx.stage.Stage;
 import javafx.scene.control.Alert;
 import java.util.Optional;
 import javafx.scene.control.ButtonType;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 
 
 public class ScheduleOverviewController implements Initializable {
+
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
         //Table and columns
         @FXML private TableView<ScheduleRow> schemaTabell;
@@ -72,17 +79,41 @@ public class ScheduleOverviewController implements Initializable {
 
         });
 
-        // === Test data untill API is connected ===
-        schemaTabell.getItems().addAll (
-            new ScheduleRow("D0018E", "Andersson", "2026-03-15", "08:00", "10:00", "A109", false),
-            new ScheduleRow("D0020E", "Karlsson", "2026-03-16", "10:15", "12:00", "B203", true)
+        loadFromAppState();
+    }
 
-        );
+    private void loadFromAppState() {
+        schemaTabell.getItems().clear();
+        TimeEditScheduleDTO schedule = AppState.getCurrentSchedule();
+        if (schedule == null || schedule.getEvents() == null || schedule.getEvents().isEmpty()) {
+            visaStatusSchema.setText("Inget schema laddat ännu.");
+            visaStatusSchema.setVisible(true);
+            return;
+        }
+
+        for (TimeEditEventDTO e : schedule.getEvents()) {
+            schemaTabell.getItems().add(toRow(e));
+        }
+        visaStatusSchema.setText("Visar " + schedule.getEvents().size() + " händelser.");
+        visaStatusSchema.setVisible(true);
+    }
+
+    private ScheduleRow toRow(TimeEditEventDTO e) {
+        OffsetDateTime start = e != null ? e.getStart() : null;
+        OffsetDateTime end = e != null ? e.getEnd() : null;
+        String date = start != null ? start.toLocalDate().toString() : "";
+        String startTime = start != null ? start.toLocalTime().format(TIME_FMT) : "";
+        String endTime = end != null ? end.toLocalTime().format(TIME_FMT) : "";
+
+        String title = e != null && e.getTitle() != null ? e.getTitle() : "";
+        String location = e != null && e.getLocation() != null ? e.getLocation() : "";
+        return new ScheduleRow(title, "", date, startTime, endTime, location, false);
     }
 
     @FXML private void onTillbakaUrlKnappClick() {
         // Handle going back to URL input screen
         try {
+			AppState.clear();
             FXMLLoader loader =
             new FXMLLoader(getClass().getResource("/fxml/SkrivaInURLSchema.fxml"));
 
