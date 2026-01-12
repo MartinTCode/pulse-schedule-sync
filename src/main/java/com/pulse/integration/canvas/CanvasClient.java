@@ -89,5 +89,28 @@ public class CanvasClient {
             return data; 
         }
     }
+    
+    /**
+     * Gets the Canvas API base URL from config, or null if not set.
+     * @return Base URL string or null
+     */
+    private String getBaseUrlOrNull() {
+        String baseUrl = CanvasConfig.getCanvasBaseUrl();
+        if (baseUrl == null) return null;
+        baseUrl = baseUrl.trim();
+        if (baseUrl.isEmpty()) return null;
+        return baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+    }
+
+    /**
+     * Gets the Canvas API token from config, or null if not set.
+     * @return Token string or null
+     */
+    private String getTokenOrNull() {
+        String token = CanvasConfig.getCanvasToken();
+        if (token == null) return null;
+        token = token.trim();
+        return token.isEmpty() ? null : token;
+    }
 }
 
