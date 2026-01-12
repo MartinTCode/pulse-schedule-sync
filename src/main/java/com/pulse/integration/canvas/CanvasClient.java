@@ -1,12 +1,15 @@
 package com.pulse.integration.canvas;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import com.pulse.integration.canvas.dto.CanvasUser;
+
 
 
 /**
@@ -20,17 +23,12 @@ import jakarta.ws.rs.client.ClientBuilder;
  * - Handle HTTP errors (CANVAS_ERROR_RESPONSE)
  */
 public class CanvasClient {
-
-    private static final Logger logger = LoggerFactory.getLogger(CanvasClient.class);
-
-    private static final int TIMEOUT_SECONDS = 10;
-
-    private final CanvasConfig config;
     private final Client client;
 
-    public CanvasClient(CanvasConfig config) {
-        this.config = config;
-        this.client = ClientBuilder.newBuilder().build();
+    public CanvasClient() {
+        this.client = ClientBuilder.newBuilder()
+            .register(com.pulse.util.ObjectMapperContextResolver.class)
+            .build();
     }
 
     /**
@@ -54,6 +52,77 @@ public class CanvasClient {
         if (token == null) return null;
         token = token.trim();
         return token.isEmpty() ? null : token;
+    }
+
+    /**
+     * Safely reads response body as string, truncating if too long.        
+     * @param res Response object
+     * @return  Body string or null if error reading
+     */
+    private static String safeReadBody(Response res) {
+        try {
+            String body = res.readEntity(String.class);
+            if (body == null) return null;
+            return body.length() > 500 ? body.substring(0, 500) + "..." : body;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Tests Canvas API authentication by calling /api/v1/users/self/profile
+     * @return CanvasResponse with CanvasUser on success, or error details
+     */
+    public CanvasResponse<CanvasUser> testAuth() {
+        String baseUrl = getBaseUrlOrNull();
+        if (baseUrl == null) {
+            return CanvasResponse.configError("Missing CANVAS_BASE_URL in environment");
+        }
+
+        String token = getTokenOrNull();
+        if (token == null) {
+            return CanvasResponse.configError("Missing CANVAS_TOKEN in environment");
+        }
+
+        String url = baseUrl + "/api/v1/users/self/profile";
+        
+        try (Response res = client.target(url)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .header("Authorization", "Bearer " + token)
+                .get()) {
+
+            int status = res.getStatus();
+
+            if (status == 401) {
+                return CanvasResponse.unauthorized(
+                        "Canvas API authentication failed (401). Check CANVAS_TOKEN."
+                );
+            }
+
+            if (status < 200 || status >= 300) {
+                String body = safeReadBody(res);
+                return CanvasResponse.errorResponse(
+                        "Canvas API returned HTTP " + status + (body != null ? (": " + body) : ""),
+                        status
+                );
+            }
+
+            CanvasUserProfileRaw raw = res.readEntity(CanvasUserProfileRaw.class);
+
+            String login = raw.login_id != null ? raw.login_id : raw.login;
+
+            CanvasUser user = new CanvasUser(
+                    raw.id != null ? String.valueOf(raw.id) : null,
+                    login
+            );
+
+            return CanvasResponse.success(user);
+
+
+
+        } catch (ProcessingException e) {
+            return CanvasResponse.unreachable("Canvas host could not be reached: " + e.getMessage());
+        }
     }
 
     /**
