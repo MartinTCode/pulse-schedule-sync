@@ -16,7 +16,9 @@ public class HealthResource {
 
     @GET
     public Response health() {
-        return Response.ok("{\"status\": \"UP\"}").build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        return Response.ok(response).build();
     }
 
     /**
