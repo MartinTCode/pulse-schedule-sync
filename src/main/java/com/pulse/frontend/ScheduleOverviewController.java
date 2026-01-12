@@ -35,9 +35,10 @@ public class ScheduleOverviewController implements Initializable {
 
         //Table and columns
         @FXML private TableView<ScheduleRow> schemaTabell;
-        @FXML private TableColumn<ScheduleRow, String> kursKolumn;
+        @FXML private TableColumn<ScheduleRow, String> aktivitetKolumn;
         @FXML private TableColumn<ScheduleRow, String> larareKolumn;
-        @FXML private TableColumn<ScheduleRow, String> datumKolumn;
+        @FXML private TableColumn<ScheduleRow, String> startDatumKolumn;
+        @FXML private TableColumn<ScheduleRow, String> slutDatumKolumn;
         @FXML private TableColumn<ScheduleRow, String> starttidKolumn;
         @FXML private TableColumn<ScheduleRow, String> sluttidKolumn;
         @FXML private TableColumn<ScheduleRow, String> platsKolumn;
@@ -59,9 +60,10 @@ public class ScheduleOverviewController implements Initializable {
         visaStatusSchema.setVisible(false);
 
         // Set up table columns to bind to ScheduleRow properties
-        kursKolumn.setCellValueFactory(cellData -> cellData.getValue().kursProperty());
+        aktivitetKolumn.setCellValueFactory(cellData -> cellData.getValue().aktivitetProperty());
         larareKolumn.setCellValueFactory(cellData -> cellData.getValue().larareProperty());
-        datumKolumn.setCellValueFactory(cellData -> cellData.getValue().datumProperty());
+        startDatumKolumn.setCellValueFactory(cellData -> cellData.getValue().startDatumProperty());
+        slutDatumKolumn.setCellValueFactory(cellData -> cellData.getValue().slutDatumProperty());
         starttidKolumn.setCellValueFactory(cellData -> cellData.getValue().startTidProperty());
         sluttidKolumn.setCellValueFactory(cellData -> cellData.getValue().slutTidProperty());
         platsKolumn.setCellValueFactory(cellData -> cellData.getValue().platsProperty());
@@ -101,13 +103,14 @@ public class ScheduleOverviewController implements Initializable {
     private ScheduleRow toRow(TimeEditEventDTO e) {
         OffsetDateTime start = e != null ? e.getStart() : null;
         OffsetDateTime end = e != null ? e.getEnd() : null;
-        String date = start != null ? start.toLocalDate().toString() : "";
+        String startDate = start != null ? start.toLocalDate().toString() : "";
+        String endDate = end != null ? end.toLocalDate().toString() : "";
         String startTime = start != null ? start.toLocalTime().format(TIME_FMT) : "";
         String endTime = end != null ? end.toLocalTime().format(TIME_FMT) : "";
 
-        String title = e != null && e.getTitle() != null ? e.getTitle() : "";
+        String title = e != null && e.getTitle() != null ? e.getTitle() : ""; 
         String location = e != null && e.getLocation() != null ? e.getLocation() : "";
-        return new ScheduleRow(title, "", date, startTime, endTime, location, false);
+        return new ScheduleRow("",title, "", startDate, endDate, startTime, endTime, location, false);
     }
 
     @FXML private void onTillbakaUrlKnappClick() {
