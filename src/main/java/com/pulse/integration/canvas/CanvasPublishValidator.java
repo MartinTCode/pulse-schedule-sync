@@ -11,9 +11,6 @@ import java.util.regex.Pattern;
 
 /**
  * Validates the request body for POST /api/canvas/publish.
- *
- * Consistent with TimeEditScheduleValidator: validate() throws a RuntimeException immediately
- * on the first invalid condition.
  */
 public class CanvasPublishValidator {
 
