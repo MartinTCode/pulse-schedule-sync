@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishSchedule {
     private String source;
-    private String timeEditUrl;
+    private String timeeditUrl;
     private List<PublishScheduleEvent> events;
 
     public String getSource() {
@@ -18,12 +18,12 @@ public class PublishSchedule {
         this.source = source;
     }
 
-    public String getTimeEditUrl() {
-        return timeEditUrl;
+    public String getTimeeditUrl() {
+        return timeeditUrl;
     }
 
-    public void setTimeEditUrl(String timeEditUrl) {
-        this.timeEditUrl = timeEditUrl;
+    public void setTimeeditUrl(String timeeditUrl) {
+        this.timeeditUrl = timeeditUrl;
     }
 
     public List<PublishScheduleEvent> getEvents() {
