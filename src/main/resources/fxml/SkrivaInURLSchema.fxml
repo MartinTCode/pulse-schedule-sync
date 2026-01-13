@@ -9,7 +9,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<BorderPane fx:controller="com.pulse.frontend.ScheduleUrlController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="471.0" prefWidth="826.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="root" focusTraversable="true" fx:controller="com.pulse.frontend.ScheduleUrlController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="471.0" prefWidth="826.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <top>
       <Label text="Skriv in URL från TimeEdit för att läsa in schema" BorderPane.alignment="CENTER">
          <font>
@@ -23,7 +23,7 @@
    <center>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
-            <TextField fx:id="skrivUrlFalt" prefHeight="31.0" prefWidth="212.0" text="Skriv in URL här" />
+            <TextField fx:id="skrivUrlFalt" prefHeight="31.0" prefWidth="212.0" promptText="Skriv in URL här" />
             <Button fx:id="laddaSchemaKnapp" mnemonicParsing="false" prefHeight="31.0" text="Läs in schema" onAction="#onLaddaSchemaKnappClick" />
          </children>
       </HBox>
