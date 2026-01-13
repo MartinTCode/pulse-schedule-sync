@@ -52,8 +52,15 @@ public class ScheduleEditController implements Initializable {
     public void setScheduleRow(ScheduleRow aktuellHandelse) {
         this.aktuellHandelse = aktuellHandelse;
 
-        //Show current event details in fields
-        visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
+        // Prepared for future support of course name without changing the UI structure
+        if (aktuellHandelse.getKurs() != null && !aktuellHandelse.getKurs().isBlank()) {
+            visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
+            visaKurs.setVisible(true);
+            visaKurs.setManaged(true);
+        } else {
+            visaKurs.setVisible(false);
+            visaKurs.setManaged(false);
+        }
 
         visaStartDatum.setValue(LocalDate.parse(aktuellHandelse.getStartDatum()));
         visaSlutDatum.setValue(LocalDate.parse(aktuellHandelse.getSlutDatum()));

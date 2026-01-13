@@ -141,6 +141,7 @@ public class ScheduleOverviewController implements Initializable {
         if (selected == null) {
             visaStatusSchema.setText("Vänligen välj en händelse att ändra.");
             visaStatusSchema.setVisible(true);
+            visaStatusSchema.setStyle(null);
             return;
         }
         
