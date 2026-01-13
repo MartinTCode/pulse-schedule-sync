@@ -5,9 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import com.pulse.integration.canvas.dto.CanvasCalendarEventRequest;
+import com.pulse.integration.canvas.dto.CanvasCalendarEventResponse;
 import com.pulse.integration.canvas.dto.CanvasUser;
 
 
@@ -68,6 +72,72 @@ public class CanvasClient {
             return null;
         }
     }
+
+    /**
+     * Creates a calendar event in Canvas.
+     * @param req the calendar event request
+     * @return CanvasResponse with CanvasCalendarEventResponse on success, or error details
+     */
+    public CanvasResponse<CanvasCalendarEventResponse> createCalendarEvent(CanvasCalendarEventRequest req) {
+        // Validate request 
+        if (req == null) {
+            return CanvasResponse.errorResponse("Request is null", 400);
+        }
+
+        String baseUrl = getBaseUrlOrNull();
+        if (baseUrl == null) {
+            return CanvasResponse.configError("Missing CANVAS_BASE_URL in environment");
+        }
+
+        String token = getTokenOrNull();
+        if (token == null) {
+            return CanvasResponse.configError("Missing CANVAS_TOKEN in environment");
+        }
+
+        // Build URL
+        String url = baseUrl + "/api/v1/calendar_events";
+
+        // Build form parameters
+        Form form = new Form()
+                .param("calendar_event[context_code]", req.getContextCode())
+                .param("calendar_event[title]", req.getTitle())
+                .param("calendar_event[start_at]", req.getStartAt())
+                .param("calendar_event[end_at]", req.getEndAt());
+
+        if (req.getLocationName() != null && !req.getLocationName().isBlank()) {
+            form.param("calendar_event[location_name]", req.getLocationName());
+        }
+
+        if (req.getDescription() != null && !req.getDescription().isBlank()) {
+            form.param("calendar_event[description]", req.getDescription());
+        }
+
+        try (Response res = client.target(url)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .header("Authorization", "Bearer " + token)
+                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))) {
+
+            int status = res.getStatus();
+
+            if (status == 401) {
+                return CanvasResponse.unauthorized("Canvas API authentication failed (401). Check CANVAS_TOKEN.");
+            }
+
+            if (status < 200 || status >= 300) {
+                String body = safeReadBody(res);
+                return CanvasResponse.errorResponse(
+                        "Canvas API returned HTTP " + status + (body != null ? (": " + body) : ""),
+                        status
+                );
+            }
+
+            CanvasCalendarEventResponse created = res.readEntity(CanvasCalendarEventResponse.class);
+            return CanvasResponse.success(created);
+
+        } catch (ProcessingException e) {
+            return CanvasResponse.unreachable("Canvas host could not be reached: " + e.getMessage());
+        }
+}
 
     /**
      * Tests Canvas API authentication by calling /api/v1/users/self/profile
