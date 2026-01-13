@@ -17,7 +17,6 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import java.util.Optional;
 
 public class ScheduleEditController implements Initializable {
@@ -27,8 +26,10 @@ public class ScheduleEditController implements Initializable {
 
     @FXML private Label visaStatusSpara;
     @FXML private Label visaKurs;
+    @FXML private TextField visaAktivitet;
 
-    @FXML private DatePicker visaDatum;
+    @FXML private DatePicker visaStartDatum;
+    @FXML private DatePicker visaSlutDatum;
     @FXML private TextField visaStarttid;
     @FXML private TextField visaSluttid;
     @FXML private TextField visaPlats;
@@ -51,10 +52,19 @@ public class ScheduleEditController implements Initializable {
     public void setScheduleRow(ScheduleRow aktuellHandelse) {
         this.aktuellHandelse = aktuellHandelse;
 
-        //Show current event details in fields
-        visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
+        // Prepared for future support of course name without changing the UI structure
+        if (aktuellHandelse.getKurs() != null && !aktuellHandelse.getKurs().isBlank()) {
+            visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
+            visaKurs.setVisible(true);
+            visaKurs.setManaged(true);
+        } else {
+            visaKurs.setVisible(false);
+            visaKurs.setManaged(false);
+        }
 
-        visaDatum.setValue(LocalDate.parse(aktuellHandelse.getDatum()));
+        visaStartDatum.setValue(LocalDate.parse(aktuellHandelse.getStartDatum()));
+        visaSlutDatum.setValue(LocalDate.parse(aktuellHandelse.getSlutDatum()));
+        visaAktivitet.setText(aktuellHandelse.getAktivitet());
         visaStarttid.setText(aktuellHandelse.getStartTid());
         visaSluttid.setText(aktuellHandelse.getSlutTid());
         visaPlats.setText(aktuellHandelse.getPlats());
@@ -86,7 +96,9 @@ public class ScheduleEditController implements Initializable {
         }
 
         //Update ScheduleRow with edited details (Later API call to save changes)
-        aktuellHandelse.setDatum(visaDatum.getValue().toString());
+        aktuellHandelse.setStartDatum(visaStartDatum.getValue().toString());
+        aktuellHandelse.setSlutDatum(visaSlutDatum.getValue().toString());
+        aktuellHandelse.setAktivitet(visaAktivitet.getText());
         aktuellHandelse.setStartTid(visaStarttid.getText());
         aktuellHandelse.setSlutTid(visaSluttid.getText());
         aktuellHandelse.setPlats(visaPlats.getText());

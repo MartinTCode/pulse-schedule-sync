@@ -9,16 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane
-    fx:controller="com.pulse.frontend.ScheduleOverviewController"
-    maxHeight="-Infinity"
-    maxWidth="-Infinity"
-    minHeight="-Infinity"
-    minWidth="-Infinity"
-    prefHeight="471.0"
-    prefWidth="826.0"
-    xmlns="http://javafx.com/javafx/23.0.1"
-    xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:controller="com.pulse.frontend.ScheduleOverviewController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="471.0" prefWidth="826.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <top>
       <Label text="Schema från TimeEdit" BorderPane.alignment="CENTER">
          <font>
@@ -30,15 +21,16 @@
       </Label>
    </top>
    <center>
-      <TableView fx:id="schemaTabell" prefHeight="392.0" prefWidth="826.0" BorderPane.alignment="CENTER">
+      <TableView fx:id="schemaTabell" prefHeight="376.0" prefWidth="826.0" BorderPane.alignment="CENTER">
         <columns>
-          <TableColumn fx:id="kursKolumn" prefWidth="108.800048828125" text="Kurs" />
-          <TableColumn fx:id="larareKolumn" prefWidth="135.199951171875" text="Lärare" />
-            <TableColumn fx:id="datumKolumn" prefWidth="146.4000244140625" text="Datum" />
-            <TableColumn fx:id="starttidKolumn" prefWidth="101.5999755859375" text="Starttid" />
-            <TableColumn fx:id="sluttidKolumn" prefWidth="107.20001220703125" text="Sluttid" />
-            <TableColumn fx:id="platsKolumn" prefWidth="120.00006103515625" text="Plats" />
-            <TableColumn fx:id="andradKolumn" prefWidth="104.0" text="Ändrad" />
+          <TableColumn fx:id="aktivitetKolumn" prefWidth="83.19994962215424" text="Aktivitet" />
+          <TableColumn fx:id="larareKolumn" prefWidth="98.4000015258789" text="Lärare" />
+            <TableColumn fx:id="startDatumKolumn" prefWidth="134.4000244140625" text="Startdatum" />
+            <TableColumn fx:id="slutDatumKolumn" prefWidth="125.5999755859375" text="Slutdatum" />
+            <TableColumn fx:id="starttidKolumn" minWidth="0.0" prefWidth="106.39999389648438" text="Starttid" />
+            <TableColumn fx:id="sluttidKolumn" prefWidth="99.20001220703125" text="Sluttid" />
+            <TableColumn fx:id="platsKolumn" prefWidth="99.20001220703125" text="Plats" />
+            <TableColumn fx:id="andradKolumn" minWidth="0.0" prefWidth="75.199951171875" text="Ändrad" />
         </columns>
       </TableView>
    </center>
