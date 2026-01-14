@@ -52,6 +52,7 @@ public class ScheduleEditController implements Initializable {
     public void setScheduleRow(ScheduleRow aktuellHandelse) {
         this.aktuellHandelse = aktuellHandelse;
 
+
         // Prepared for future support of course name without changing the UI structure
         if (aktuellHandelse.getKurs() != null && !aktuellHandelse.getKurs().isBlank()) {
             visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
@@ -68,7 +69,7 @@ public class ScheduleEditController implements Initializable {
         visaStarttid.setText(aktuellHandelse.getStartTid());
         visaSluttid.setText(aktuellHandelse.getSlutTid());
         visaPlats.setText(aktuellHandelse.getPlats());
-
+        visaBeskrivning.setText(aktuellHandelse.getBeskrivning());
 
     }
 
@@ -102,6 +103,7 @@ public class ScheduleEditController implements Initializable {
         aktuellHandelse.setStartTid(visaStarttid.getText());
         aktuellHandelse.setSlutTid(visaSluttid.getText());
         aktuellHandelse.setPlats(visaPlats.getText());
+        aktuellHandelse.setBeskrivning(visaBeskrivning.getText());
         aktuellHandelse.setAndrad(true);
 
         visaStatusSpara.setText("Ändringar sparade lokalt. Publicera schema för att skicka till Canvas.");

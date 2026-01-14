@@ -110,7 +110,8 @@ public class ScheduleOverviewController implements Initializable {
 
         String title = e != null && e.getTitle() != null ? e.getTitle() : ""; 
         String location = e != null && e.getLocation() != null ? e.getLocation() : "";
-        return new ScheduleRow("",title, "", startDate, endDate, startTime, endTime, location, false);
+        String description = e != null && e.getDescription() != null ? e.getDescription() : "";
+        return new ScheduleRow("",title, "", startDate, endDate, startTime, endTime, location, description, false);
     }
 
     @FXML private void onTillbakaUrlKnappClick() {
