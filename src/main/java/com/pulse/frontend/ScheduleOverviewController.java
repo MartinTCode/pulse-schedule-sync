@@ -3,12 +3,17 @@ package com.pulse.frontend;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.pulse.frontend.model.ScheduleRow;
+import com.pulse.domain.TransferRequest;
+import com.pulse.frontend.api.TransferApiClient;
 import com.pulse.frontend.model.AppState;
 import com.pulse.integration.timeedit.dto.TimeEditEventDTO;
 import com.pulse.integration.timeedit.dto.TimeEditScheduleDTO;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -21,6 +26,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableCell;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
+
+import java.util.List;
 import java.util.Optional;
 import javafx.scene.control.ButtonType;
 import java.time.OffsetDateTime;
@@ -169,17 +176,18 @@ public class ScheduleOverviewController implements Initializable {
 
     }
 
-    @FXML private void onPubliceraSchemaKnappClick() {
-        // Handle publishing schedule to Canvas
-        boolean finnsAndringar = schemaTabell.getItems().stream().anyMatch(ScheduleRow::isAndrad);
+    /**
+     * Handles publishing the schedule to Canvas when the button is clicked.
+     */
+    @FXML
+    private void onPubliceraSchemaKnappClick() {
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Bekräfta publicering av schema");
         confirm.setHeaderText("Är du säker på att du vill publicera schemat till Canvas?");
         confirm.setContentText("Alla scheman och eventuella ändringar kommer att skickas till Canvas.");
-        
-        Optional<ButtonType> result = confirm.showAndWait();
 
+        Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) {
             visaStatusSchema.setText("Publicering avbröts.");
             visaStatusSchema.setStyle("-fx-text-fill: orange;");
@@ -187,12 +195,130 @@ public class ScheduleOverviewController implements Initializable {
             return;
         }
 
-        visaStatusSchema.setText("Schema publicerat till Canvas.");
-        visaStatusSchema.setStyle("-fx-text-fill: green;");
+        // Build schedule from what's currently shown in the table (includes edits)
+        TimeEditScheduleDTO scheduleToPublish = buildScheduleFromTable();
+
+        // Build TransferRequest that matches backend contract 
+        TransferRequest transferRequest = new TransferRequest();
+
+        // Canvas context from env var
+        String canvasContext = System.getenv().getOrDefault("CANVAS_CONTEXT", "").trim();
+        if (canvasContext.isBlank()) {
+            visaStatusSchema.setText("Publicering misslyckades: CANVAS_CONTEXT saknas (t.ex. user_123).");
+            visaStatusSchema.setStyle("-fx-text-fill: red;");
+            visaStatusSchema.setVisible(true);
+            return;
+        }
+        transferRequest.setCanvasContext(canvasContext);
+
+        // Map TimeEdit events -> TransferRequest.ScheduleEvent
+        TransferRequest.Schedule schedule = new TransferRequest.Schedule();
+        schedule.setEvents(
+                scheduleToPublish.getEvents().stream()
+                        .map(ev -> {
+                            TransferRequest.ScheduleEvent e = new TransferRequest.ScheduleEvent();
+
+                            e.setExternalId(ev.getExternalId());
+                            e.setTitle(ev.getTitle());
+                            e.setStart(ev.getStart());
+                            e.setEnd(ev.getEnd());
+                            e.setLocation(ev.getLocation());
+                            e.setDescription(ev.getDescription());
+                            return e;
+                        })
+                        .collect(Collectors.toList())
+        );
+
+        transferRequest.setSchedule(schedule);
+
+        // 3) Update UI state
+        visaStatusSchema.setText("Publicerar schema till Canvas...");
+        visaStatusSchema.setStyle("-fx-text-fill: orange;");
         visaStatusSchema.setVisible(true);
 
-        // TODO: Implement actual API call to publish schedule to Canvas
+        publiceraSchemaKnapp.setDisable(true);
 
+        // 4) Call backend async
+        TransferApiClient client = new TransferApiClient(
+                System.getenv().getOrDefault("BACKEND_BASE_URL", "http://localhost:8080")
+        );
+
+        CompletableFuture
+                .supplyAsync(() -> client.publishToCanvas(transferRequest))
+                .whenComplete((transferResult, err) -> Platform.runLater(() -> {
+                    publiceraSchemaKnapp.setDisable(false);
+
+                    if (err != null) {
+                        visaStatusSchema.setText("Publicering misslyckades: " + err.getMessage());
+                        visaStatusSchema.setStyle("-fx-text-fill: red;");
+                        visaStatusSchema.setVisible(true);
+                        return;
+                    }
+
+                    int ok = transferResult.getPublished();
+                    int fail = transferResult.getFailureCount();
+                    int total = ok + fail;
+
+                    if (fail == 0) {
+                        visaStatusSchema.setText("Schema publicerat till Canvas (" + ok + "/" + total + ").");
+                        visaStatusSchema.setStyle("-fx-text-fill: green;");
+                        visaStatusSchema.setVisible(true);
+
+                        // Mark rows as no longer changed
+                        schemaTabell.getItems().forEach(r -> r.setAndrad(false));
+                        return;
+                    }
+
+                    visaStatusSchema.setText("Publicering klar: " + ok + " OK, " + fail + " misslyckades.");
+                    visaStatusSchema.setStyle("-fx-text-fill: orange;");
+                    visaStatusSchema.setVisible(true);
+
+                    String failures = transferResult.getFailures().stream()
+                            .map(f -> "- " + f.getExternalId() + ": " + f.getMessage())
+                            .collect(Collectors.joining("\n"));
+
+                    Alert a = new Alert(Alert.AlertType.WARNING);
+                    a.setTitle("Publicering: vissa event misslyckades");
+                    a.setHeaderText("Canvas accepterade inte alla event.");
+                    a.setContentText(failures.isBlank() ? "Se logg för detaljer." : failures);
+                    a.showAndWait();
+                }));
     }
 
+
+
+    /**
+     * Builds a TimeEditScheduleDTO from the current table contents.
+     * @return The built TimeEditScheduleDTO.
+     */
+    private TimeEditScheduleDTO buildScheduleFromTable() {
+        TimeEditScheduleDTO base = AppState.getCurrentSchedule();
+        TimeEditScheduleDTO dto = new TimeEditScheduleDTO();
+
+        List<TimeEditEventDTO> events = schemaTabell.getItems().stream()
+                .map(this::rowToEventDto)
+                .collect(Collectors.toList());
+
+        dto.setEvents(events);
+        return dto;
+    }
+
+    /**
+     * Maps a ScheduleRow back into a TimeEditEventDTO.
+     * @param row The ScheduleRow to map.
+     * @return The mapped TimeEditEventDTO.
+     */
+    private TimeEditEventDTO rowToEventDto(ScheduleRow row) {
+        TimeEditEventDTO e = new TimeEditEventDTO();
+
+        // Map from your table row back into DTO
+        e.setTitle(row.getAktivitet());
+        e.setStart(OffsetDateTime.parse(row.getStartDatum() + "T" + row.getStartTid() + ":00+00:00"));
+        e.setEnd(OffsetDateTime.parse(row.getSlutDatum() + "T" + row.getSlutTid() + ":00+00:00"));
+        e.setLocation(row.getPlats());
+        e.setDescription(row.getBeskrivning());
+
+        return e;
+    }
 }
+
