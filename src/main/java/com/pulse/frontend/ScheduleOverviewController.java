@@ -68,7 +68,7 @@ public class ScheduleOverviewController implements Initializable {
         // Controller for main schedule overview screen
         // Test functionality has been moved to TestDashboardController
 
-        visaStatusSchema.setVisible(false);
+        
 
         // Set up table columns to bind to ScheduleRow properties
         aktivitetKolumn.setCellValueFactory(cellData -> cellData.getValue().aktivitetProperty());
@@ -79,6 +79,11 @@ public class ScheduleOverviewController implements Initializable {
         sluttidKolumn.setCellValueFactory(cellData -> cellData.getValue().slutTidProperty());
         platsKolumn.setCellValueFactory(cellData -> cellData.getValue().platsProperty());
         andradKolumn.setCellValueFactory(cellData -> cellData.getValue().andradProperty());
+
+
+        visaStatusSchema.setVisible(false);
+        // Hide 'larare' column as it's not used currently
+        larareKolumn.setVisible(false);
 
 
         // Show ✓ instead of true/false for 'andrad' column
