@@ -39,13 +39,21 @@ public class CanvasPublishService {
         CanvasPublishValidator.validate(request);
         logger.debug("Request validation passed");
 
+        String canvasContext = request.getCanvasContext();
+
+        if (canvasContext == null || canvasContext.isBlank()) {
+            logger.info("No Canvas context provided in request, attempting to retrieve from CanvasContextState");
+
+            var user = canvasClient.getAuthenticatedUser();
+            canvasContext = "user_" + user.id();
+            logger.info("Retrieved Canvas context from CanvasContextState: {}", canvasContext);
+
+        }
+
+
         // Loop events
         int published = 0;
         List<Failure> failures = new ArrayList<>();
-
-        String canvasContext = request.getCanvasContext();
-        int totalEvents = request.getSchedule().getEvents().size();
-        logger.info("Processing {} events for Canvas context: {}", totalEvents, canvasContext);
 
         // For each event to publish
         for (PublishScheduleEvent event : request.getSchedule().getEvents()) {
@@ -83,9 +91,8 @@ public class CanvasPublishService {
             logger.debug("Recording non-fatal failure for event: {}", event.getExternalId());
             failures.add(new Failure(event.getExternalId(), msg));
         }
-
-        logger.info("Publish operation completed: {} published, {} failed out of {} total", 
-            published, failures.size(), totalEvents);
+        
+        logger.info("Publish operation completed: published={}, failures={}", published, failures.size());
 
         return new PublishResult(published, failures);
     }

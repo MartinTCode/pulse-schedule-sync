@@ -28,16 +28,15 @@ public class CanvasPublishValidator {
             throw new CanvasPublishException("Request body is null");
         }
 
-        // canvasContext is required and must match expected format
-        String canvasContext = trimToNull(request.getCanvasContext());
-        if (canvasContext == null) {
-            throw new CanvasPublishException("Missing canvasContext");
-        }
+    String canvasContext = trimToNull(request.getCanvasContext());
+    if (canvasContext != null) {
         if (!CONTEXT_PATTERN.matcher(canvasContext).matches()) {
-            throw new CanvasPublishException(
-                    "Invalid canvasContext format: " + canvasContext + " (expected course_<id> or user_<id>)"
-            );
+            throw new CanvasPublishException("Invalid canvasContext format: " + canvasContext + 
+                    ". Expected format: 'user_<id>'");
+
         }
+
+    }
 
         // schedule is required
         PublishSchedule schedule = request.getSchedule();

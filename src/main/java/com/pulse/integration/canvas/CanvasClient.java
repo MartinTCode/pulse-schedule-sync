@@ -63,6 +63,17 @@ public class CanvasClient {
         return token.isEmpty() ? null : token;
     }
 
+    public CanvasUser getAuthenticatedUser() {
+        CanvasResponse<CanvasUser> result = testAuth();
+
+        if (!result.isSuccess()) {
+            throw new CanvasUpstreamException(result.getErrorCode(), "Failed to resolve Canvas user");
+
+        }
+        return result.getData();
+
+    }
+
     /**
      * Safely reads response body as string, truncating if too long.        
      * @param res Response object

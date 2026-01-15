@@ -208,17 +208,6 @@ public class ScheduleOverviewController implements Initializable {
         // Build TransferRequest that matches backend contract 
         TransferRequest transferRequest = new TransferRequest();
 
-        // Canvas context from env var
-        String canvasContext = System.getenv().getOrDefault("CANVAS_CONTEXT", "").trim();
-        if (canvasContext.isBlank()) {
-            logger.error("CANVAS_CONTEXT environment variable is missing or blank");
-            visaStatusSchema.setText("Publicering misslyckades: CANVAS_CONTEXT saknas (t.ex. user_123).");
-            visaStatusSchema.setStyle("-fx-text-fill: red;");
-            visaStatusSchema.setVisible(true);
-            return;
-        }
-        logger.debug("Using Canvas context: {}", canvasContext);
-        transferRequest.setCanvasContext(canvasContext);
 
         // Map TimeEdit events -> TransferRequest.ScheduleEvent
         TransferRequest.Schedule schedule = new TransferRequest.Schedule();
