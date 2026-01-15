@@ -27,6 +27,9 @@ import javafx.scene.control.TableCell;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Optional;
 import javafx.scene.control.ButtonType;
@@ -38,6 +41,7 @@ import java.time.format.DateTimeFormatter;
 
 public class ScheduleOverviewController implements Initializable {
 
+    private static final Logger logger = LoggerFactory.getLogger(ScheduleOverviewController.class);
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
         //Table and columns
@@ -181,6 +185,7 @@ public class ScheduleOverviewController implements Initializable {
      */
     @FXML
     private void onPubliceraSchemaKnappClick() {
+        logger.debug("Publish button clicked, showing confirmation dialog");
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Bekräfta publicering av schema");
@@ -189,12 +194,14 @@ public class ScheduleOverviewController implements Initializable {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) {
+            logger.info("User cancelled publish operation");
             visaStatusSchema.setText("Publicering avbröts.");
             visaStatusSchema.setStyle("-fx-text-fill: orange;");
             visaStatusSchema.setVisible(true);
             return;
         }
 
+        logger.debug("User confirmed publish, building schedule from table");
         // Build schedule from what's currently shown in the table (includes edits)
         TimeEditScheduleDTO scheduleToPublish = buildScheduleFromTable();
 
@@ -204,11 +211,13 @@ public class ScheduleOverviewController implements Initializable {
         // Canvas context from env var
         String canvasContext = System.getenv().getOrDefault("CANVAS_CONTEXT", "").trim();
         if (canvasContext.isBlank()) {
+            logger.error("CANVAS_CONTEXT environment variable is missing or blank");
             visaStatusSchema.setText("Publicering misslyckades: CANVAS_CONTEXT saknas (t.ex. user_123).");
             visaStatusSchema.setStyle("-fx-text-fill: red;");
             visaStatusSchema.setVisible(true);
             return;
         }
+        logger.debug("Using Canvas context: {}", canvasContext);
         transferRequest.setCanvasContext(canvasContext);
 
         // Map TimeEdit events -> TransferRequest.ScheduleEvent
@@ -230,6 +239,7 @@ public class ScheduleOverviewController implements Initializable {
         );
 
         transferRequest.setSchedule(schedule);
+        logger.info("Prepared transfer request with {} events to publish", schedule.getEvents().size());
 
         // 3) Update UI state
         visaStatusSchema.setText("Publicerar schema till Canvas...");
@@ -239,16 +249,18 @@ public class ScheduleOverviewController implements Initializable {
         publiceraSchemaKnapp.setDisable(true);
 
         // 4) Call backend async
-        TransferApiClient client = new TransferApiClient(
-                System.getenv().getOrDefault("BACKEND_BASE_URL", "http://localhost:8080")
-        );
+        String backendUrl = System.getenv().getOrDefault("BACKEND_BASE_URL", "http://localhost:8080");
+        logger.debug("Creating API client with backend URL: {}", backendUrl);
+        TransferApiClient client = new TransferApiClient(backendUrl);
 
+        logger.info("Initiating async publish to Canvas");
         CompletableFuture
                 .supplyAsync(() -> client.publishToCanvas(transferRequest))
                 .whenComplete((transferResult, err) -> Platform.runLater(() -> {
                     publiceraSchemaKnapp.setDisable(false);
 
                     if (err != null) {
+                        logger.error("Publish operation failed with exception", err);
                         visaStatusSchema.setText("Publicering misslyckades: " + err.getMessage());
                         visaStatusSchema.setStyle("-fx-text-fill: red;");
                         visaStatusSchema.setVisible(true);
@@ -259,7 +271,10 @@ public class ScheduleOverviewController implements Initializable {
                     int fail = transferResult.getFailureCount();
                     int total = ok + fail;
 
+                    logger.info("Publish completed: {} successful, {} failed out of {} total", ok, fail, total);
+
                     if (fail == 0) {
+                        logger.debug("All events published successfully, updating UI");
                         visaStatusSchema.setText("Schema publicerat till Canvas (" + ok + "/" + total + ").");
                         visaStatusSchema.setStyle("-fx-text-fill: green;");
                         visaStatusSchema.setVisible(true);
@@ -269,6 +284,7 @@ public class ScheduleOverviewController implements Initializable {
                         return;
                     }
 
+                    logger.warn("Publish completed with failures: {} OK, {} failed", ok, fail);
                     visaStatusSchema.setText("Publicering klar: " + ok + " OK, " + fail + " misslyckades.");
                     visaStatusSchema.setStyle("-fx-text-fill: orange;");
                     visaStatusSchema.setVisible(true);
@@ -276,6 +292,8 @@ public class ScheduleOverviewController implements Initializable {
                     String failures = transferResult.getFailures().stream()
                             .map(f -> "- " + f.getExternalId() + ": " + f.getMessage())
                             .collect(Collectors.joining("\n"));
+                    
+                    logger.debug("Failure details:\n{}", failures);
 
                     Alert a = new Alert(Alert.AlertType.WARNING);
                     a.setTitle("Publicering: vissa event misslyckades");

@@ -32,22 +32,32 @@ public class TransferApiClient {
     }
 
     public TransferResult publishToCanvas(TransferRequest requestBody) {
+        logger.debug("Starting publishToCanvas API call");
         try {
-            URI uri = URI.create(baseUrl + "/api/canvas/publish"); 
+            URI uri = URI.create(baseUrl + "/api/canvas/publish");
+            logger.debug("Target URI: {}", uri);
 
             String json = objectMapper.writeValueAsString(requestBody);
+            logger.debug("Request body serialized, length: {} bytes", json.length());
+            
+            byte[] jsonBytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            logger.debug("Request body as UTF-8 bytes: {} bytes", jsonBytes.length);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
+                    .version(HttpClient.Version.HTTP_1_1)
                     .timeout(Duration.ofSeconds(60))
                     .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .header("Content-Type", "application/json; charset=UTF-8")
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(jsonBytes))
                     .build();
 
+            logger.info("Sending POST request to {} with {} bytes", uri, jsonBytes.length);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
             String body = response.body() == null ? "" : response.body();
+
+            logger.debug("Received response: status={}, bodyLength={}", status, body.length());
 
             if (status >= 200 && status < 300) {
                 TransferResult result = objectMapper.readValue(body, TransferResult.class);
@@ -56,6 +66,9 @@ public class TransferApiClient {
                 return result;
             }
 
+            logger.warn("Non-success status code received: {}", status);
+            logger.warn("Response body: {}", body);
+            
             ErrorResponse errorResponse = tryParseError(body);
             if (errorResponse != null && errorResponse.getError() != null) {
                 String code = errorResponse.getError().getCode();
@@ -65,10 +78,13 @@ public class TransferApiClient {
             }
 
             logger.warn("Publish failed: httpStatus={}, bodyLength={}", status, body.length());
+            logger.warn("Could not parse error response, raw body: {}", body);
             throw new ApiException(status, "UNKNOWN_ERROR", "Request failed (HTTP " + status + ")");
         } catch (ApiException e) {
+            logger.error("API exception during publish: code={}, message={}", e.getErrorCode(), e.getMessage());
             throw e;
         } catch (Exception e) {
+            logger.error("Unexpected error during publish API call", e);
             throw new ApiException(0, "CLIENT_ERROR", "Failed to call server", e);
         }
     }

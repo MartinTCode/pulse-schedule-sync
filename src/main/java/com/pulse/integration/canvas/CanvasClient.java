@@ -2,6 +2,9 @@ package com.pulse.integration.canvas;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -27,6 +30,8 @@ import com.pulse.integration.canvas.dto.CanvasUser;
  * - Handle HTTP errors (CANVAS_ERROR_RESPONSE)
  */
 public class CanvasClient {
+    private static final Logger logger = LoggerFactory.getLogger(CanvasClient.class);
+    
     private final Client client;
 
     public CanvasClient() {
@@ -79,23 +84,31 @@ public class CanvasClient {
      * @return CanvasResponse with CanvasCalendarEventResponse on success, or error details
      */
     public CanvasResponse<CanvasCalendarEventResponse> createCalendarEvent(CanvasCalendarEventRequest req) {
+        logger.debug("createCalendarEvent called");
+        
         // Validate request 
         if (req == null) {
+            logger.error("Request is null");
             return CanvasResponse.errorResponse("Request is null", 400);
         }
 
         String baseUrl = getBaseUrlOrNull();
         if (baseUrl == null) {
+            logger.error("Missing CANVAS_BASE_URL in environment");
             return CanvasResponse.configError("Missing CANVAS_BASE_URL in environment");
         }
 
         String token = getTokenOrNull();
         if (token == null) {
+            logger.error("Missing CANVAS_TOKEN in environment");
             return CanvasResponse.configError("Missing CANVAS_TOKEN in environment");
         }
 
         // Build URL
         String url = baseUrl + "/api/v1/calendar_events";
+        logger.debug("Creating calendar event at URL: {}", url);
+        logger.debug("Event details: context={}, title={}, start={}, end={}", 
+            req.getContextCode(), req.getTitle(), req.getStartAt(), req.getEndAt());
 
         // Build form parameters
         Form form = new Form()
@@ -106,10 +119,12 @@ public class CanvasClient {
 
         if (req.getLocationName() != null && !req.getLocationName().isBlank()) {
             form.param("calendar_event[location_name]", req.getLocationName());
+            logger.debug("Location: {}", req.getLocationName());
         }
 
         if (req.getDescription() != null && !req.getDescription().isBlank()) {
             form.param("calendar_event[description]", req.getDescription());
+            logger.debug("Description length: {} chars", req.getDescription().length());
         }
 
         try (Response res = client.target(url)
@@ -118,13 +133,16 @@ public class CanvasClient {
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))) {
 
             int status = res.getStatus();
+            logger.debug("Canvas API response status: {}", status);
 
             if (status == 401) {
+                logger.error("Canvas authentication failed (401)");
                 return CanvasResponse.unauthorized("Canvas API authentication failed (401). Check CANVAS_TOKEN.");
             }
 
             if (status < 200 || status >= 300) {
                 String body = safeReadBody(res);
+                logger.warn("Canvas API error response: status={}, body={}", status, body);
                 return CanvasResponse.errorResponse(
                         "Canvas API returned HTTP " + status + (body != null ? (": " + body) : ""),
                         status
@@ -132,9 +150,12 @@ public class CanvasClient {
             }
 
             CanvasCalendarEventResponse created = res.readEntity(CanvasCalendarEventResponse.class);
+            logger.info("Calendar event created successfully: id={}, title={}", 
+                created != null ? created.getId() : "unknown");
             return CanvasResponse.success(created);
 
         } catch (ProcessingException e) {
+            logger.error("Canvas host unreachable: {}", e.getMessage(), e);
             return CanvasResponse.unreachable("Canvas host could not be reached: " + e.getMessage());
         }
 }
