@@ -48,10 +48,12 @@ public class ScheduleApiClient {
 					.GET()
 					.build();
 
+			// sends the request to the server
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			int status = response.statusCode();
 			String body = response.body() == null ? "" : response.body();
 
+			// success
 			if (status >= 200 && status < 300) {
 				TimeEditScheduleDTO schedule = objectMapper.readValue(body, TimeEditScheduleDTO.class);
 				logger.info(
@@ -64,6 +66,7 @@ public class ScheduleApiClient {
 				return schedule;
 			}
 
+			// fail
 			ErrorResponse errorResponse = tryParseError(body);
 			if (errorResponse != null && errorResponse.getError() != null) {
 				String code = errorResponse.getError().getCode();
