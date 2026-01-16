@@ -11,6 +11,7 @@ import java.util.Map;
 import com.pulse.integration.canvas.CanvasApiTester;
 import com.pulse.integration.canvas.CanvasClient;
 import com.pulse.integration.canvas.dto.CanvasUser;
+import com.pulse.integration.canvas.dto.CanvasContextState;
 
 @Path("/health")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,6 +37,9 @@ public class HealthResource {
 
         if (result.isSuccess()) {
             CanvasUser user = result.getData();
+
+            String canvasContext = "user_" + user.id();
+            CanvasContextState.set(canvasContext);
 
             Map<String, Object> canvasUser = new HashMap<>();
             canvasUser.put("id", user.id());

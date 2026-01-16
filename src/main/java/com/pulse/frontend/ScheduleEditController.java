@@ -1,6 +1,7 @@
 package com.pulse.frontend;
 
 import com.pulse.frontend.model.ScheduleRow;
+import com.pulse.frontend.validation.ScheduleEventValidator;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -17,6 +18,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
+
+import java.util.List;
 import java.util.Optional;
 
 public class ScheduleEditController implements Initializable {
@@ -52,6 +55,7 @@ public class ScheduleEditController implements Initializable {
     public void setScheduleRow(ScheduleRow aktuellHandelse) {
         this.aktuellHandelse = aktuellHandelse;
 
+
         // Prepared for future support of course name without changing the UI structure
         if (aktuellHandelse.getKurs() != null && !aktuellHandelse.getKurs().isBlank()) {
             visaKurs.setText("Kurs: " + aktuellHandelse.getKurs());
@@ -68,12 +72,31 @@ public class ScheduleEditController implements Initializable {
         visaStarttid.setText(aktuellHandelse.getStartTid());
         visaSluttid.setText(aktuellHandelse.getSlutTid());
         visaPlats.setText(aktuellHandelse.getPlats());
-
+        visaBeskrivning.setText(aktuellHandelse.getBeskrivning());
 
     }
 
     //Event handler for saving changes button
     @FXML private void onSparaAndringKnappClick() {
+
+        // Validate inputs before saving using separate validation class
+        List<String> errors = ScheduleEventValidator.validate(
+                visaAktivitet.getText(),
+                visaPlats.getText(),
+                visaBeskrivning.getText(),
+                visaStartDatum.getValue(),
+                visaSlutDatum.getValue(),
+                visaStarttid.getText(),
+                visaSluttid.getText()
+        );
+
+        if (!errors.isEmpty()) {
+            // Show errors and block save
+            visaStatusSpara.setText(String.join("\n", errors));
+            visaStatusSpara.setVisible(true);
+            return;
+        }
+
         if (aktuellHandelse == null) {
             visaStatusSpara.setText("Ingen händelse vald att spara.");
             visaStatusSpara.setVisible(true);
@@ -102,6 +125,7 @@ public class ScheduleEditController implements Initializable {
         aktuellHandelse.setStartTid(visaStarttid.getText());
         aktuellHandelse.setSlutTid(visaSluttid.getText());
         aktuellHandelse.setPlats(visaPlats.getText());
+        aktuellHandelse.setBeskrivning(visaBeskrivning.getText());
         aktuellHandelse.setAndrad(true);
 
         visaStatusSpara.setText("Ändringar sparade lokalt. Publicera schema för att skicka till Canvas.");

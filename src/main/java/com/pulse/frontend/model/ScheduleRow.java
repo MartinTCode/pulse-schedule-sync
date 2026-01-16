@@ -15,10 +15,11 @@ public class ScheduleRow {
     private final StringProperty startTid = new SimpleStringProperty();
     private final StringProperty slutTid = new SimpleStringProperty();
     private final StringProperty plats = new SimpleStringProperty();
+    private final StringProperty beskrivning = new SimpleStringProperty();
     private final BooleanProperty andrad = new SimpleBooleanProperty();
 
     // Constructor
-    public ScheduleRow(String kurs, String aktivitet, String larare, String startDatum, String slutDatum, String startTid, String slutTid, String plats, boolean andrad) {
+    public ScheduleRow(String kurs, String aktivitet, String larare, String startDatum, String slutDatum, String startTid, String slutTid, String plats, String beskrivning, boolean andrad) {
         this.kurs.set(kurs);
         this.aktivitet.set(aktivitet);
         this.larare.set(larare);
@@ -27,8 +28,8 @@ public class ScheduleRow {
         this.startTid.set(startTid);
         this.slutTid.set(slutTid);
         this.plats.set(plats);
+        this.beskrivning.set(beskrivning);
         this.andrad.set(andrad);
-
     }
 
     // Getters for properties
@@ -62,6 +63,10 @@ public class ScheduleRow {
 
     public String getPlats() {
         return plats.get();
+    }
+
+    public String getBeskrivning() {
+        return beskrivning.get();
     }
 
     public boolean isAndrad() {
@@ -102,6 +107,10 @@ public class ScheduleRow {
         return plats;
     }
 
+    public StringProperty beskrivningProperty() {
+        return beskrivning;
+    }
+
     public BooleanProperty andradProperty() {
         return andrad;
     }
@@ -137,6 +146,10 @@ public class ScheduleRow {
 
     public void setSlutTid(String slutTid) {
         this.slutTid.set(slutTid);
+    }
+
+    public void setBeskrivning(String beskrivning) {
+        this.beskrivning.set(beskrivning);
     }
 
     public void setAndrad(boolean andrad) {

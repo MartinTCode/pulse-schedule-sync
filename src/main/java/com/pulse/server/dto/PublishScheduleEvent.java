@@ -1,13 +1,15 @@
 package com.pulse.server.dto;
 
+import java.time.OffsetDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishScheduleEvent {
     private String externalId;
     private String title;
-    private String start;
-    private String end;
+    private OffsetDateTime start;
+    private OffsetDateTime end;
     private String location;
     private String description;
 
@@ -29,19 +31,19 @@ public class PublishScheduleEvent {
         this.title = title;
     }
 
-    public String getStart() {
+    public OffsetDateTime getStart() {
         return start;
     }
 
-    public void setStart(String start) {
+    public void setStart(OffsetDateTime start) {
         this.start = start;
     }
 
-    public String getEnd() {
+    public OffsetDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(String end) {
+    public void setEnd(OffsetDateTime end) {
         this.end = end;
     }
 

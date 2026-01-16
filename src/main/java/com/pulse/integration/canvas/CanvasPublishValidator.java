@@ -5,7 +5,6 @@ import com.pulse.server.dto.PublishSchedule;
 import com.pulse.server.dto.PublishScheduleEvent;
 
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -29,16 +28,15 @@ public class CanvasPublishValidator {
             throw new CanvasPublishException("Request body is null");
         }
 
-        // canvasContext is required and must match expected format
-        String canvasContext = trimToNull(request.getCanvasContext());
-        if (canvasContext == null) {
-            throw new CanvasPublishException("Missing canvasContext");
-        }
+    String canvasContext = trimToNull(request.getCanvasContext());
+    if (canvasContext != null) {
         if (!CONTEXT_PATTERN.matcher(canvasContext).matches()) {
-            throw new CanvasPublishException(
-                    "Invalid canvasContext format: " + canvasContext + " (expected course_<id> or user_<id>)"
-            );
+            throw new CanvasPublishException("Invalid canvasContext format: " + canvasContext + 
+                    ". Expected format: 'user_<id>'");
+
         }
+
+    }
 
         // schedule is required
         PublishSchedule schedule = request.getSchedule();
@@ -74,42 +72,24 @@ public class CanvasPublishValidator {
             throw new CanvasPublishException("Event has missing title: externalId=" + externalId);
         }
 
-        // Start/end are required and must be ISO-8601
-        OffsetDateTime start = parseIso(event.getStart(), "start", externalId);
-        OffsetDateTime end = parseIso(event.getEnd(), "end", externalId);
+        // Start/end are required
+        OffsetDateTime start = event.getStart();
+        OffsetDateTime end = event.getEnd();
+        
+        if (start == null) {
+            throw new CanvasPublishException("Event has missing start: externalId=" + externalId);
+        }
+        
+        if (end == null) {
+            throw new CanvasPublishException("Event has missing end: externalId=" + externalId);
+        }
 
         // Must have end strictly after start
         if (!end.isAfter(start)) {
             throw new CanvasPublishException(
                     "Invalid event time range: externalId=" + externalId +
-                            ", start=" + event.getStart() +
-                            ", end=" + event.getEnd()
-            );
-        }
-    }
-
-    /**
-     * Parses the given value as an ISO-8601 OffsetDateTime.
-     * @param value the value to parse
-     * @param field the field name (for error messages)
-     * @param externalId the event external ID (for error messages)
-     * @return the parsed OffsetDateTime
-     */
-    private static OffsetDateTime parseIso(String value, String field, String externalId) {
-        String trimmed = trimToNull(value);
-        // Missing value
-        if (trimmed == null) {
-            throw new CanvasPublishException(
-                    "Event has missing " + field + ": externalId=" + externalId
-            );
-        }
-        try {
-            return OffsetDateTime.parse(trimmed);
-        // Invalid format
-        } catch (DateTimeParseException e) {
-            throw new CanvasPublishException(
-                    "Event has invalid ISO-8601 " + field + ": externalId=" + externalId + ", value=" + value,
-                    e
+                            ", start=" + start +
+                            ", end=" + end
             );
         }
     }
