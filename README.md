@@ -24,8 +24,6 @@ The application retrieves schedule data, allows a responsible user to review and
 
 - Service-oriented design with clear separation between UI, domain, and integrations
 
-- Optional persistence layer for drafts, mappings, or transfer history
-
 ## Tech Stack
 
 - Java 21
@@ -33,12 +31,6 @@ The application retrieves schedule data, allows a responsible user to review and
 - JavaFX
 
 - JAX-RS (Jersey) with embedded HTTP server
-
-- PostgreSQL (optional)
-
-- JPA / Hibernate
-
-- Flyway
 
 - Maven
 
